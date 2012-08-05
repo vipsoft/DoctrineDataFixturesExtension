@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="behat.doctrine_data_fixtures.service.hook_dispatcher.class">VIPSoft\DoctrineDataFixturesExtension\Hook\HookDispatcher</parameter>
+        <parameter key="behat.doctrine_data_fixtures.service.fixture_loader.class">VIPSoft\DoctrineDataFixturesExtension\Service\FixtureService</parameter>
+    </parameters>
+
+    <services>
+        <service id="behat.doctrine_data_fixtures.service.hook_dispatcher" class="%behat.doctrine_data_fixtures.service.hook_dispatcher.class%">
+            <call method="setFixtureService">
+                <argument type="service" id="behat.doctrine_data_fixtures.service.fixture_loader" />
+            </call>
+            <tag name="behat.event_subscriber" priority="0" />
+        </service>
+
+        <service id="behat.doctrine_data_fixtures.service.fixture_loader" class="%behat.doctrine_data_fixtures.service.fixture_loader.class%">
+            <argument>%behat.doctrine_data_fixtures.fixtures%</argument>
+            <argument type="service" id="behat.symfony2_extension.kernel" />
+        </service>
+    </services>
+
+</container>

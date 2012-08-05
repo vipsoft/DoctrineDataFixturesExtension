@@ -1,0 +1,28 @@
+{
+    "name": "vipsoft/doctrine-data-fixtures-extension",
+    "type": "library",
+    "description": "Doctrine data fixtures extension for Behat",
+    "keywords": ["behat", "bdd", "doctrine", "data fixtures"],
+    "homepage": "http://github.com/vipsoft/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anthon Pang",
+            "email": "apang@softwaredevelopment.ca",
+            "role": "developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.6",
+        "behat/behat": ">=2.4.0,<2.5.0",
+        "symfony/config": ">=2.0.0,<2.2.0",
+        "symfony/dependency-injection": ">=2.0.0,<2.2.0",
+        "doctrine/data-fixtures": "dev-master"
+    },
+    "require-dev": {
+        "symfony/symfony": "dev-master"
+    },
+    "autoload": {
+        "psr-0": { "VIPSoft\\DoctrineDataFixturesExtension": "src/" }
+    }
+}
