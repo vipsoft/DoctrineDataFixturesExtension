@@ -4,7 +4,7 @@ Increase feature test isolation by reloading data fixtures between features.
 
 ## Documentation
 
-[Official documentation](http://extensions.behat.org/jira/index.html)
+[Official documentation](http://extensions.behat.org/doctrine-data-fixtures)
 
 ## Copyright
 
