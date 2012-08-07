@@ -48,15 +48,23 @@ STUB
 );
 $phar->stopBuffering();
 
-function findFiles($dir) {
+/**
+ * Find files
+ *
+ * @param string $dir Directory
+ *
+ * @return array
+ */
+function findFiles($dir)
+{
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir),
-      RecursiveIteratorIterator::CHILD_FIRST);
+        RecursiveIteratorIterator::CHILD_FIRST);
 
     $files = array();
     foreach ($iterator as $path) {
-      if ($path->isFile()) {
-          $files[] = $path->getPath().DIRECTORY_SEPARATOR.$path->getFilename();
-      }
+        if ($path->isFile()) {
+            $files[] = $path->getPath().DIRECTORY_SEPARATOR.$path->getFilename();
+        }
     }
 
     return $files;

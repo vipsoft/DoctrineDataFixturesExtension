@@ -31,8 +31,8 @@ class FixtureService
     /**
      * Constructor
      *
-     * @param array  $fixture Fixture class names
-     * @param Kernel $kernel  Application kernel
+     * @param array  $fixtures Fixture class names
+     * @param Kernel $kernel   Application kernel
      */
     public function __construct($fixtures, Kernel $kernel)
     {
@@ -50,6 +50,8 @@ class FixtureService
 
     /**
      * Calculate hash on data fixture class names
+     *
+     * @param array $fixtures
      *
      * @return string
      */

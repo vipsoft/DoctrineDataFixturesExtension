@@ -4,7 +4,7 @@
  * @license MIT
  */
 
-namespace VIPSoft\DoctrineDataFixturesExtension\Hook;
+namespace VIPSoft\DoctrineDataFixturesExtension\EventListener;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -12,11 +12,11 @@ use Behat\Behat\Event\SuiteEvent,
     Behat\Behat\Event\FeatureEvent;
 
 /**
- * Hook dispatcher
+ * Hook listener
  *
  * @author Anthon Pang <apang@softwaredevelopment.ca>
  */
-class HookDispatcher implements EventSubscriberInterface
+class HookListener implements EventSubscriberInterface
 {
     private $fixtureService;
 

@@ -70,6 +70,10 @@ Limitations
 -----------
 When using the SqlLiteDriver, the .db file is cached to speed up reloading.  You should periodically clear the cache as it does not detect changes to the data fixture contents because the hash is based on the collection of data fixture class names.
 
+Source
+======
+`Github <https://github.com/vipsoft/DoctrineDataFixturesExtension>`_
+
 Copyright
 =========
 Copyright (c) 2012 Anthon Pang.  See **LICENSE** for details.
@@ -77,3 +81,4 @@ Copyright (c) 2012 Anthon Pang.  See **LICENSE** for details.
 Contributors
 ============
 * Anthon Pang `(robocoder) <http://github.com/robocoder>`_
+* `Others <https://github.com/vipsoft/DoctrineDataFixturesExtension/graphs/contributors>`_

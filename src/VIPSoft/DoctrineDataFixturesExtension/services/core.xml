@@ -4,12 +4,12 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <parameters>
-        <parameter key="behat.doctrine_data_fixtures.service.hook_dispatcher.class">VIPSoft\DoctrineDataFixturesExtension\Hook\HookDispatcher</parameter>
+        <parameter key="behat.doctrine_data_fixtures.service.hook_listener.class">VIPSoft\DoctrineDataFixturesExtension\EventListener\HookListener</parameter>
         <parameter key="behat.doctrine_data_fixtures.service.fixture_loader.class">VIPSoft\DoctrineDataFixturesExtension\Service\FixtureService</parameter>
     </parameters>
 
     <services>
-        <service id="behat.doctrine_data_fixtures.service.hook_dispatcher" class="%behat.doctrine_data_fixtures.service.hook_dispatcher.class%">
+        <service id="behat.doctrine_data_fixtures.service.hook_listener" class="%behat.doctrine_data_fixtures.service.hook_listener.class%">
             <call method="setFixtureService">
                 <argument type="service" id="behat.doctrine_data_fixtures.service.fixture_loader" />
             </call>
