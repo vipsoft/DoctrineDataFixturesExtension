@@ -17,6 +17,10 @@ use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor,
     Doctrine\Common\DataFixtures\Purger\ORMPurger;
 
+use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
+
+use VIPSoft\DoctrineDataFixturesExtension\EventListener\PlatformListener;
+
 /**
  * Data Fixture Service
  *
@@ -28,6 +32,7 @@ class FixtureService
     private $directories;
     private $kernel;
     private $entityManager;
+    private $listener;
     private $databaseFile;
     private $backupDbFile;
 
@@ -49,7 +54,10 @@ class FixtureService
      */
     private function init()
     {
+        $this->listener = new PlatformListener;
+
         $this->entityManager = $this->kernel->getContainer()->get('doctrine')->getManager();
+        $this->entityManager->getEventManager()->addEventSubscriber($this->listener);
     }
 
     /**
@@ -143,11 +151,23 @@ class FixtureService
     }
 
     /**
+     * Dispatch event
+     */
+    private function dispatchEvent($em, $event)
+    {
+        $eventArgs = new LifecycleEventArgs(null, $em);
+
+        $em->getEventManager()->dispatchEvent($event, $eventArgs);
+    }
+
+    /**
      * Load fixtures into database
      */
     private function loadFixtures()
     {
         $em = $this->entityManager;
+
+        $this->dispatchEvent($em, 'preTruncate');
 
         $purger = new ORMPurger($em);
         $purger->setPurgeMode(ORMPurger::PURGE_MODE_TRUNCATE);
@@ -155,6 +175,8 @@ class FixtureService
         $executor = new ORMExecutor($em, $purger);
         $executor->purge();
         $executor->execute($this->fixtures, true);
+
+        $this->dispatchEvent($em, 'postTruncate');
     }
 
     /**
