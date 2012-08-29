@@ -118,8 +118,10 @@ class FixtureService
                 $className = '\\' . $className;
             }
 
-            $fixture = new $className;
-            $fixtures[get_class($fixture)] = $fixture;
+            if (! class_exists($className, false)) {
+                $fixture = new $className;
+                $fixtures[get_class($fixture)] = $fixture;
+            }
         }
 
         return $fixtures;
