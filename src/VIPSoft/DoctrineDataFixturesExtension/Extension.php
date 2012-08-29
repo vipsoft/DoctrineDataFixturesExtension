@@ -28,6 +28,9 @@ class Extension implements ExtensionInterface
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/services'));
         $loader->load('core.xml');
 
+        if (isset($config['directories'])) {
+            $container->setParameter('behat.doctrine_data_fixtures.directories', $config['directories']);
+        }
         if (isset($config['fixtures'])) {
             $container->setParameter('behat.doctrine_data_fixtures.fixtures', $config['fixtures']);
         }
@@ -40,6 +43,9 @@ class Extension implements ExtensionInterface
     {
         $builder->
             children()->
+                arrayNode('directories')->
+                    prototype('scalar')->end()->
+                end()->
                 arrayNode('fixtures')->
                     prototype('scalar')->end()->
                 end()->

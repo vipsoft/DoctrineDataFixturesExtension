@@ -8,6 +8,8 @@ namespace VIPSoft\DoctrineDataFixturesExtension\Service;
 
 use Symfony\Component\HttpKernel\Kernel;
 
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
 use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoader;
 
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
@@ -22,7 +24,8 @@ use Doctrine\Common\DataFixtures\Executor\ORMExecutor,
  */
 class FixtureService
 {
-    private $fixture;
+    private $fixtures;
+    private $directories;
     private $kernel;
     private $entityManager;
     private $databaseFile;
@@ -31,12 +34,13 @@ class FixtureService
     /**
      * Constructor
      *
-     * @param array  $fixtures Fixture class names
-     * @param Kernel $kernel   Application kernel
+     * @param ContainerInterface $container Service container
+     * @param Kernel             $kernel    Application kernel
      */
-    public function __construct($fixtures, Kernel $kernel)
+    public function __construct(ContainerInterface $container, Kernel $kernel)
     {
-        $this->fixture = $fixtures;
+        $this->fixtures = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
+        $this->directories = $container->getParameter('behat.doctrine_data_fixtures.directories');
         $this->kernel = $kernel;
     }
 
@@ -69,39 +73,71 @@ class FixtureService
      *
      * @return array Array of data fixture objects
      */
-    private function fetchBundleFixtures()
+    private function fetchFixturesFromBundles()
+    {
+        $directories = array_filter(array_map(function ($bundle) {
+            $path = $bundle->getPath() . '/DataFixtures/ORM';
+            
+            return is_dir($path) ? $path : null;
+        }, $this->kernel->getBundles()));
+
+        return $this->fetchFixturesFromDirectories($directories);
+    }
+
+    /**
+     * Fetch fixtures from directories
+     *
+     * @param array $directoryNames
+     *
+     * @return array Array of data fixture objects
+     */
+    private function fetchFixturesFromDirectories($directoryNames)
     {
         $loader = new DataFixturesLoader($this->kernel->getContainer());
 
-        foreach ($this->kernel->getBundles() as $bundle) {
-            $path = $bundle->getPath() . '/DataFixtures/ORM';
-
-            if (is_dir($path)) {
-                $loader->loadFromDirectory($path);
-            }
+        foreach ($directoryNames as $directoryName) {
+            $loader->loadFromDirectory($directoryName);
         }
 
         return $loader->getFixtures();
     }
 
     /**
-     * Fetch fixtures
+     * Fetch fixtures from classes
+     *
+     * @param array $classNames
      *
      * @return array Array of data fixture objects
      */
-    private function fetchFixtures()
+    private function fetchFixturesFromClasses($classNames)
     {
         $fixtures = array();
 
-        foreach ($this->fixtures as $className) {
+        foreach ($classNames as $className) {
             if (substr($className, 0, 1) !== '\\') {
                 $className = '\\' . $className;
             }
 
-            $fixtures[] = new $className;
+            $fixture = new $className;
+            $fixtures[get_class($fixture)] = $fixture;
         }
 
         return $fixtures;
+    }
+
+    /**
+     * Fetch fixtures
+     *
+     * @return array|null
+     */
+    private function fetchFixtures()
+    {
+        $fixtures = array_merge(
+            $this->fetchFixturesFromDirectories($this->directories ?: array()),
+            $this->fetchFixturesFromClasses($this->fixtures ?: array())
+        );
+
+        return count($fixtures) ? $fixtures : null;
     }
 
     /**
@@ -170,7 +206,7 @@ class FixtureService
     {
         $this->init();
 
-        $this->fixtures = isset($this->fixtures) ? $this->fetchFixtures() : $this->fetchBundleFixtures();
+        $this->fixtures = $this->fetchFixtures() ?: $this->fetchFixturesFromBundles();
 
         $this->databaseFile = $this->getDatabaseFile();
     }

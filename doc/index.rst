@@ -50,12 +50,14 @@ Activate extension in your **behat.yml** and define any fixtures to be loaded:
       # ...
       extensions:
         VIPSoft\DoctrineDataFixturesExtension\Extension:
+          directories:
+            - /project/src/AcmeAnalytics/Tests/DataFixtures/ORM
           fixtures:
             - Acme\StoreBundle\DataFixture\ORM\Categories
             - Acme\StoreBundle\DataFixture\ORM\Apps
             - Acme\VendorBundle\DataFixture\ORM\Vendors
 
-Alternately, you can set **fixtures** to null.  The DoctrineDataFixtures extension will then load the data fixtures for all registered bundles (similar to ``app/console doctrine:fixtures:load``).
+Alternately, you can set **fixtures** and **directories** to null.  The DoctrineDataFixtures extension will then load the data fixtures for all registered bundles (similar to ``app/console doctrine:fixtures:load``).
 
 .. code-block:: yaml
 
@@ -65,6 +67,7 @@ Alternately, you can set **fixtures** to null.  The DoctrineDataFixtures extensi
       extensions:
         VIPSoft\DoctrineDataFixturesExtension\Extension:
           fixtures: ~
+          directories: ~
 
 Limitations
 -----------
