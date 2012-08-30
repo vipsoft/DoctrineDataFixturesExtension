@@ -1,6 +1,6 @@
 # DoctrineDataFixturesExtension
 
-Increase feature test isolation by reloading data fixtures between features.
+Increase feature test isolation by reloading ORM data fixtures between features.
 
 ## Documentation
 

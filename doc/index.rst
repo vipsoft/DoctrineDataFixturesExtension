@@ -2,7 +2,7 @@
 DoctrineDataFixturesExtension
 =============================
 
-The DoctrineDataFixtures extension increases feature test isolation by reloading data fixtures between features.
+The DoctrineDataFixtures extension increases feature test isolation by reloading ORM data fixtures between features.
 
 Installation
 ============
@@ -10,7 +10,7 @@ This extension requires:
 
 * Behat 2.4+
 * Mink 1.4+
-* Doctrine 2.x
+* Doctrine ORM 2.x
 * [Symfony2Extension](http://extensions.behat.org/symfony2/)
 
 Through Composer
