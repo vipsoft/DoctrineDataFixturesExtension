@@ -1,4 +1,5 @@
 default:
   extensions:
     VIPSoft\DoctrineDataFixturesExtension\Extension:
+      directories: ~
       fixtures: ~
