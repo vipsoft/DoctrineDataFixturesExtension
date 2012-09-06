@@ -12,12 +12,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoader;
 
-use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
-
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor,
     Doctrine\Common\DataFixtures\Purger\ORMPurger;
 
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
+
+use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
+
+use Doctrine\ORM\Tools\SchemaTool;
 
 use VIPSoft\DoctrineDataFixturesExtension\EventListener\PlatformListener;
 
@@ -191,6 +193,10 @@ class FixtureService
 
         if ($connection->getDriver() instanceof SqliteDriver) {
             $params = $connection->getParams();
+
+            $schemaTool = new SchemaTool($em);
+            $schemaTool->dropDatabase($params['path']);
+            $schemaTool->createSchema($em->getMetadataFactory()->getAllMetadata());
         }
 
         return isset($params['path']) ? $params['path'] : null;
