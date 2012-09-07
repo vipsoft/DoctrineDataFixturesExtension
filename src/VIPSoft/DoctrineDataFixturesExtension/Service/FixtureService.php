@@ -146,7 +146,7 @@ class FixtureService
     /**
      * Fetch fixtures
      *
-     * @return array|null
+     * @return array
      */
     private function fetchFixtures()
     {
@@ -155,7 +155,7 @@ class FixtureService
             $this->fetchFixturesFromClasses($this->fixtures ?: array())
         );
 
-        return count($fixtures) ? $fixtures : null;
+        return $fixtures;
     }
 
     /**
