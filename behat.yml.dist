@@ -1,5 +1,6 @@
 default:
   extensions:
     VIPSoft\DoctrineDataFixturesExtension\Extension:
+      autoload:    true
       directories: ~
-      fixtures: ~
+      fixtures:    ~

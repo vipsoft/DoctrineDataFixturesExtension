@@ -30,6 +30,7 @@ use VIPSoft\DoctrineDataFixturesExtension\EventListener\PlatformListener;
  */
 class FixtureService
 {
+    private $autoload;
     private $fixtures;
     private $directories;
     private $kernel;
@@ -46,6 +47,7 @@ class FixtureService
      */
     public function __construct(ContainerInterface $container, Kernel $kernel)
     {
+        $this->autoload = $container->getParameter('behat.doctrine_data_fixtures.autoload');
         $this->fixtures = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
         $this->directories = $container->getParameter('behat.doctrine_data_fixtures.directories');
         $this->kernel = $kernel;
@@ -85,9 +87,13 @@ class FixtureService
      */
     private function fetchFixturesFromBundles()
     {
+        if (! $this->autoload) {
+            return array();
+        }
+
         $directories = array_filter(array_map(function ($bundle) {
             $path = $bundle->getPath() . '/DataFixtures/ORM';
-            
+
             return is_dir($path) ? $path : null;
         }, $this->kernel->getBundles()));
 
@@ -154,6 +160,9 @@ class FixtureService
 
     /**
      * Dispatch event
+     *
+     * @param EntityManager $em    Entity manager
+     * @param string        $event Event name
      */
     private function dispatchEvent($em, $event)
     {
@@ -236,7 +245,7 @@ class FixtureService
     {
         $this->init();
 
-        $this->fixtures = $this->fetchFixtures() ?: $this->fetchFixturesFromBundles();
+        $this->fixtures = array_merge($this->fetchFixturesFromBundles(), $this->fetchFixtures());
 
         $this->databaseFile = $this->getDatabaseFile();
     }

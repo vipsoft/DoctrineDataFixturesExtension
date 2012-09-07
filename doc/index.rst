@@ -50,14 +50,18 @@ Activate extension in your **behat.yml** and define any fixtures to be loaded:
       # ...
       extensions:
         VIPSoft\DoctrineDataFixturesExtension\Extension:
-          directories:
-            - /project/src/AcmeAnalytics/Tests/DataFixtures/ORM
-          fixtures:
-            - Acme\StoreBundle\DataFixture\ORM\Categories
-            - Acme\StoreBundle\DataFixture\ORM\Apps
-            - Acme\VendorBundle\DataFixture\ORM\Vendors
+          autoload:    true
+          directories: ~
+          fixtures:    ~
 
-Alternately, you can set **fixtures** and **directories** to null.  The DoctrineDataFixtures extension will then load the data fixtures for all registered bundles (similar to ``app/console doctrine:fixtures:load``).
+When **autoload** is true, the DoctrineDataFixtures extension will load the data fixtures for all
+registered bundles (similar to ``app/console doctrine:fixtures:load``).
+
+When **fixtures** is set, the DoctrineDataFixtures extension will load the specified fixture
+classes.
+
+When **directories** is set, the DoctrineDataFixtures extension will load the data fixtures globbed
+from the respective directories.
 
 .. code-block:: yaml
 
@@ -66,8 +70,13 @@ Alternately, you can set **fixtures** and **directories** to null.  The Doctrine
       # ...
       extensions:
         VIPSoft\DoctrineDataFixturesExtension\Extension:
-          fixtures: ~
-          directories: ~
+          autoload: true
+          fixtures:
+            - /project/src/AcmeAnalytics/Tests/DataFixtures/ORM
+          directories:
+            - Acme\StoreBundle\DataFixture\ORM\Categories
+            - Acme\StoreBundle\DataFixture\ORM\Apps
+            - Acme\VendorBundle\DataFixture\ORM\Vendors
 
 Limitations
 -----------
