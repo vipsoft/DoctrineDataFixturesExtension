@@ -9,6 +9,7 @@ namespace VIPSoft\DoctrineDataFixturesExtension\Service;
 use Symfony\Component\HttpKernel\Kernel;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 
 use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoader;
 
@@ -136,6 +137,9 @@ class FixtureService
 
             if (! class_exists($className, false)) {
                 $fixture = new $className;
+                if ($fixture instanceof ContainerAwareInterface) {
+                    $fixture->setContainer($this->kernel->getContainer());
+                }
                 $fixtures[get_class($fixture)] = $fixture;
             }
         }
