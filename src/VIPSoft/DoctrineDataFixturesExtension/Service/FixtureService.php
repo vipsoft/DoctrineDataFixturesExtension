@@ -11,9 +11,12 @@ use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoader;
+use Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader as SymfonyFixturesLoader;
+use Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader as DoctrineFixturesLoader;
 
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor,
-    Doctrine\Common\DataFixtures\Purger\ORMPurger;
+    Doctrine\Common\DataFixtures\Purger\ORMPurger,
+    Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 
@@ -30,6 +33,7 @@ use VIPSoft\DoctrineDataFixturesExtension\EventListener\PlatformListener;
  */
 class FixtureService
 {
+    private $loader;
     private $autoload;
     private $fixtures;
     private $directories;
@@ -65,6 +69,24 @@ class FixtureService
     }
 
     /**
+     * Retrieve Data fixtures loader
+     *
+     * @return mixed
+     */
+    private function getFixtureLoader()
+    {
+        $container = $this->kernel->getContainer();
+
+        $loader = class_exists('Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader')
+            ? new DataFixturesLoader($container)
+            : (class_exists('Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader')
+                ? new DoctrineFixturesLoader($container)
+                : new SymfonyFixturesLoader($container));
+
+        return $loader;
+    }
+
+    /**
      * Calculate hash on data fixture class names
      *
      * @param array $fixtures
@@ -81,66 +103,71 @@ class FixtureService
     }
 
     /**
-     * Fetch bundle fixtures
+     * Get bundle fixture directories
      *
-     * @return array Array of data fixture objects
+     * @return array Array of directories
      */
-    private function fetchFixturesFromBundles()
+    private function getBundleFixtureDirectories()
     {
-        if (! $this->autoload) {
-            return array();
-        }
-
-        $directories = array_filter(array_map(function ($bundle) {
+        return array_filter(array_map(function ($bundle) {
             $path = $bundle->getPath() . '/DataFixtures/ORM';
 
             return is_dir($path) ? $path : null;
         }, $this->kernel->getBundles()));
-
-        return $this->fetchFixturesFromDirectories($directories);
     }
 
     /**
      * Fetch fixtures from directories
      *
      * @param array $directoryNames
-     *
-     * @return array Array of data fixture objects
      */
     private function fetchFixturesFromDirectories($directoryNames)
     {
-        $loader = new DataFixturesLoader($this->kernel->getContainer());
-
         foreach ($directoryNames as $directoryName) {
-            $loader->loadFromDirectory($directoryName);
+            $this->loader->loadFromDirectory($directoryName);
+        }
+    }
+
+    /**
+     * Load a data fixture class.
+     *
+     * @param string $className Class name
+     */
+    private function loadFixtureClass($className)
+    {
+        $fixture = new $className();
+
+        if ($this->loader->hasFixture($fixture)) {
+            unset($fixture);
+
+            return;
         }
 
-        return $loader->getFixtures();
+        $this->loader->addFixture(new $className);
+
+        if ($fixture instanceof DependentFixtureInterface) {
+            foreach ($fixture->getDependencies() as $dependency) {
+                $this->loadFixtureClass($dependency);
+            }
+        }
     }
 
     /**
      * Fetch fixtures from classes
      *
      * @param array $classNames
-     *
-     * @return array Array of data fixture objects
      */
     private function fetchFixturesFromClasses($classNames)
     {
-        $fixtures = array();
-
         foreach ($classNames as $className) {
             if (substr($className, 0, 1) !== '\\') {
                 $className = '\\' . $className;
             }
 
             if (! class_exists($className, false)) {
-                $fixture = new $className;
-                $fixtures[get_class($fixture)] = $fixture;
+                $this->loadFixtureClass($className);
             }
         }
-
-        return $fixtures;
     }
 
     /**
@@ -150,12 +177,15 @@ class FixtureService
      */
     private function fetchFixtures()
     {
-        $fixtures = array_merge(
-            $this->fetchFixturesFromDirectories($this->directories ?: array()),
-            $this->fetchFixturesFromClasses($this->fixtures ?: array())
-        );
+        $this->loader = $this->getFixtureLoader();
 
-        return $fixtures;
+        $bundleDirectories = $this->autoload ? $this->getBundleFixtureDirectories() : array();
+
+        $this->fetchFixturesFromDirectories($bundleDirectories);
+        $this->fetchFixturesFromDirectories($this->directories ?: array());
+        $this->fetchFixturesFromClasses($this->fixtures ?: array());
+
+        return $this->loader->getFixtures();
     }
 
     /**
@@ -245,7 +275,7 @@ class FixtureService
     {
         $this->init();
 
-        $this->fixtures = array_merge($this->fetchFixturesFromBundles(), $this->fetchFixtures());
+        $this->fixtures = $this->fetchFixtures();
 
         $this->databaseFile = $this->getDatabaseFile();
     }
