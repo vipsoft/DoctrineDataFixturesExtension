@@ -302,5 +302,11 @@ class FixtureService
         $em = $this->entityManager;
         $em->flush();
         $em->clear();
+
+        $cacheDriver = $em->getMetadataFactory()->getCacheDriver();
+
+        if ($cacheDriver) {
+            $cacheDriver->deleteAll();
+        }
     }
 }
