@@ -10,6 +10,7 @@
 
     <services>
         <service id="behat.doctrine_data_fixtures.service.hook_listener" class="%behat.doctrine_data_fixtures.service.hook_listener.class%">
+            <argument>%behat.doctrine_data_fixtures.lifetime%</argument>
             <call method="setFixtureService">
                 <argument type="service" id="behat.doctrine_data_fixtures.service.fixture_loader" />
             </call>

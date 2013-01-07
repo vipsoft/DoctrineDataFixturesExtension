@@ -20,9 +20,6 @@
         "symfony/dependency-injection": ">=2.0.0,<2.2.0",
         "doctrine/data-fixtures": "dev-master"
     },
-    "require-dev": {
-        "symfony/symfony": "dev-master"
-    },
     "autoload": {
         "psr-0": { "VIPSoft\\DoctrineDataFixturesExtension": "src/" }
     }
