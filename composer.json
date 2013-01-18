@@ -16,8 +16,8 @@
         "php": ">=5.3.6",
         "behat/behat": ">=2.4.0,<2.5.0",
         "behat/symfony2-extension": ">=1.0",
-        "symfony/config": ">=2.0.0,<2.2.0",
-        "symfony/dependency-injection": ">=2.0.0,<2.2.0",
+        "symfony/config": ">=2.0.0,<3.0-dev",
+        "symfony/dependency-injection": ">=2.0.0,<3.0-dev",
         "doctrine/data-fixtures": "dev-master"
     },
     "require-dev": {
