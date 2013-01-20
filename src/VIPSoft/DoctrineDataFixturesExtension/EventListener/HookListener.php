@@ -6,6 +6,8 @@
 
 namespace VIPSoft\DoctrineDataFixturesExtension\EventListener;
 
+use Behat\Behat\Event\OutlineExampleEvent;
+use Behat\Behat\Event\ScenarioEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 use Behat\Behat\Event\SuiteEvent,
@@ -18,7 +20,16 @@ use Behat\Behat\Event\SuiteEvent,
  */
 class HookListener implements EventSubscriberInterface
 {
+    /**
+     * @var string feature|scenario
+     */
+    private $lifetime;
     private $fixtureService;
+
+    public function __construct($lifetime)
+    {
+        $this->lifetime = $lifetime;
+    }
 
     /**
      * {@inheritdoc}
@@ -29,6 +40,10 @@ class HookListener implements EventSubscriberInterface
             'beforeSuite',
             'beforeFeature',
             'afterFeature',
+            'beforeScenario',
+            'afterScenario',
+            'beforeOutlineExample',
+            'beforeOutlineExample',
         );
 
         return array_combine($events, $events);
@@ -62,6 +77,10 @@ class HookListener implements EventSubscriberInterface
      */
     public function beforeFeature(FeatureEvent $event)
     {
+        if ('feature' !== $this->lifetime) {
+            return;
+        }
+
         $this->fixtureService
              ->reloadFixtures();
     }
@@ -73,6 +92,70 @@ class HookListener implements EventSubscriberInterface
      */
     public function afterFeature(FeatureEvent $event)
     {
+        if ('feature' !== $this->lifetime) {
+            return;
+        }
+
+        $this->fixtureService
+             ->flush();
+    }
+
+    /**
+     * Listens to "scenario.before" event.
+     *
+     * @param ScenarioEvent $event
+     */
+    public function beforeScenario(ScenarioEvent $event)
+    {
+        if ('scenario' !== $this->lifetime) {
+            return;
+        }
+
+        $this->fixtureService
+             ->reloadFixtures();
+    }
+
+    /**
+     * Listens to "scenario.after" event.
+     *
+     * @param ScenarioEvent $event
+     */
+    public function afterScenario(ScenarioEvent $event)
+    {
+        if ('scenario' !== $this->lifetime) {
+            return;
+        }
+
+        $this->fixtureService
+             ->flush();
+    }
+
+    /**
+     * Listens to "outline.example.before" event.
+     *
+     * @param OutlineExampleEvent $event
+     */
+    public function beforeOutlineExample(OutlineExampleEvent $event)
+    {
+        if ('scenario' !== $this->lifetime) {
+            return;
+        }
+
+        $this->fixtureService
+             ->reloadFixtures();
+    }
+
+    /**
+     * Listens to "outline.example.after" event.
+     *
+     * @param OutlineExampleEvent $event
+     */
+    public function afterOutlineExample(OutlineExampleEvent $event)
+    {
+        if ('scenario' !== $this->lifetime) {
+            return;
+        }
+
         $this->fixtureService
              ->flush();
     }
