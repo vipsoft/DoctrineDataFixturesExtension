@@ -24,6 +24,10 @@ class HookListener implements EventSubscriberInterface
      * @var string feature|scenario
      */
     private $lifetime;
+
+    /**
+     * @var object
+     */
     private $fixtureService;
 
     public function __construct($lifetime)
