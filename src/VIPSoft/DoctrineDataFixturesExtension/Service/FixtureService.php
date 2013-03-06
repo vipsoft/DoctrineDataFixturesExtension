@@ -87,7 +87,7 @@ class FixtureService
     }
 
     /**
-     * Calculate hash on data fixture class names
+     * Calculate hash on data fixture class names, class file names and modification timestamps
      *
      * @param array $fixtures
      *
@@ -96,6 +96,13 @@ class FixtureService
     private function generateHash($fixtures)
     {
         $classNames = array_map('get_class', $fixtures);
+
+        foreach($classNames as & $className) {
+            $class    = new \ReflectionClass($className);
+            $fileName = $class->getFileName();
+
+            $className .= ':' . $fileName . '@' . filemtime($fileName);
+        }
 
         sort($classNames);
 
