@@ -253,10 +253,6 @@ class FixtureService
      */
     private function backupFixtures()
     {
-        $cacheDirectory = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
-
-        $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->fixtures) . '.db';
-
         copy($this->databaseFile, $this->backupDbFile);
     }
 
@@ -285,6 +281,12 @@ class FixtureService
         $this->fixtures = $this->fetchFixtures();
 
         $this->databaseFile = $this->getDatabaseFile();
+
+        if (isset($this->databaseFile)) {
+            $cacheDirectory = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
+
+            $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->fixtures) . '.db';
+        }
     }
 
     /**
