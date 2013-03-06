@@ -87,7 +87,7 @@ class FixtureService
     }
 
     /**
-     * Calculate hash on data fixture class names
+     * Calculate hash on data fixture class names, class file names and modification timestamps
      *
      * @param array $fixtures
      *
@@ -96,6 +96,13 @@ class FixtureService
     private function generateHash($fixtures)
     {
         $classNames = array_map('get_class', $fixtures);
+
+        foreach($classNames as & $className) {
+            $class    = new \ReflectionClass($className);
+            $fileName = $class->getFileName();
+
+            $className .= ':' . $fileName . '@' . filemtime($fileName);
+        }
 
         sort($classNames);
 
@@ -246,10 +253,6 @@ class FixtureService
      */
     private function backupFixtures()
     {
-        $cacheDirectory = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
-
-        $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->fixtures) . '.db';
-
         copy($this->databaseFile, $this->backupDbFile);
     }
 
@@ -278,6 +281,12 @@ class FixtureService
         $this->fixtures = $this->fetchFixtures();
 
         $this->databaseFile = $this->getDatabaseFile();
+
+        if (isset($this->databaseFile)) {
+            $cacheDirectory = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
+
+            $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->fixtures) . '.db';
+        }
     }
 
     /**
