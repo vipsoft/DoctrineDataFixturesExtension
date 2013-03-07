@@ -6,12 +6,11 @@
 
 namespace VIPSoft\DoctrineDataFixturesExtension\EventListener;
 
+use Behat\Behat\Event\FeatureEvent;
 use Behat\Behat\Event\OutlineExampleEvent;
 use Behat\Behat\Event\ScenarioEvent;
+use Behat\Behat\Event\SuiteEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-
-use Behat\Behat\Event\SuiteEvent,
-    Behat\Behat\Event\FeatureEvent;
 
 /**
  * Hook listener

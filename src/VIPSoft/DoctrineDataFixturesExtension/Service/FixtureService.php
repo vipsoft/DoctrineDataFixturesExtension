@@ -6,24 +6,17 @@
 
 namespace VIPSoft\DoctrineDataFixturesExtension\Service;
 
-use Symfony\Component\HttpKernel\Kernel;
-
-use Symfony\Component\DependencyInjection\ContainerInterface;
-
+use Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader as DoctrineFixturesLoader;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
+use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
+use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
+use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoader;
 use Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader as SymfonyFixturesLoader;
-use Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader as DoctrineFixturesLoader;
-
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor,
-    Doctrine\Common\DataFixtures\Purger\ORMPurger,
-    Doctrine\Common\DataFixtures\DependentFixtureInterface;
-
-use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
-
-use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
-
-use Doctrine\ORM\Tools\SchemaTool;
-
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpKernel\Kernel;
 use VIPSoft\DoctrineDataFixturesExtension\EventListener\PlatformListener;
 
 /**
@@ -62,7 +55,7 @@ class FixtureService
      */
     private function init()
     {
-        $this->listener = new PlatformListener;
+        $this->listener = new PlatformListener();
 
         $this->entityManager = $this->kernel->getContainer()->get('doctrine')->getManager();
         $this->entityManager->getEventManager()->addEventSubscriber($this->listener);
@@ -150,7 +143,7 @@ class FixtureService
             return;
         }
 
-        $this->loader->addFixture(new $className);
+        $this->loader->addFixture(new $className());
 
         if ($fixture instanceof DependentFixtureInterface) {
             foreach ($fixture->getDependencies() as $dependency) {
@@ -249,14 +242,6 @@ class FixtureService
     }
 
     /**
-     * Save data fixtures to backup file
-     */
-    private function backupFixtures()
-    {
-        copy($this->databaseFile, $this->backupDbFile);
-    }
-
-    /**
      * Restore fixtures from backup
      */
     private function restoreFixtures()
@@ -268,7 +253,9 @@ class FixtureService
         }
 
         $this->loadFixtures();
-        $this->backupFixtures();
+
+        // Save data fixtures to backup file
+        copy($this->databaseFile, $this->backupDbFile);
     }
 
     /**
@@ -282,7 +269,7 @@ class FixtureService
 
         $this->databaseFile = $this->getDatabaseFile();
 
-        if (isset($this->databaseFile)) {
+        if ($this->databaseFile) {
             $cacheDirectory = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
 
             $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->fixtures) . '.db';
@@ -294,7 +281,7 @@ class FixtureService
      */
     public function reloadFixtures()
     {
-        if (isset($this->databaseFile)) {
+        if ($this->databaseFile) {
             $this->restoreFixtures();
 
             return;

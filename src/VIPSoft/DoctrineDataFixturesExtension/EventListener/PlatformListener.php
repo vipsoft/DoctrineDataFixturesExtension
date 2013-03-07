@@ -7,9 +7,7 @@
 namespace VIPSoft\DoctrineDataFixturesExtension\EventListener;
 
 use Doctrine\Common\EventSubscriber;
-
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
-
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 
 /**
