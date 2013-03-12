@@ -232,30 +232,21 @@ class FixtureService
 
         if ($connection->getDriver() instanceof SqliteDriver) {
             $params = $connection->getParams();
-
-            $schemaTool = new SchemaTool($em);
-            $schemaTool->dropDatabase($params['path']);
-            $schemaTool->createSchema($em->getMetadataFactory()->getAllMetadata());
         }
 
         return isset($params['path']) ? $params['path'] : null;
     }
 
     /**
-     * Restore fixtures from backup
+     * Create database
      */
-    private function restoreFixtures()
+    private function createDatabase($path)
     {
-        if (file_exists($this->backupDbFile)) {
-            copy($this->backupDbFile, $this->databaseFile);
+        $em = $this->entityManager;
 
-            return;
-        }
-
-        $this->loadFixtures();
-
-        // Save data fixtures to backup file
-        copy($this->databaseFile, $this->backupDbFile);
+        $schemaTool = new SchemaTool($em);
+        $schemaTool->dropDatabase($path);
+        $schemaTool->createSchema($em->getMetadataFactory()->getAllMetadata());
     }
 
     /**
@@ -265,15 +256,18 @@ class FixtureService
     {
         $this->init();
 
-        $this->fixtures = $this->fetchFixtures();
-
         $this->databaseFile = $this->getDatabaseFile();
 
         if ($this->databaseFile) {
-            $cacheDirectory = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
+            if (!file_exists($this->databaseFile)) {
+                $this->createDatabase($this->databaseFile);
+            }
 
+            $cacheDirectory = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
             $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->fixtures) . '.db';
         }
+
+        $this->fixtures = $this->fetchFixtures();
     }
 
     /**
@@ -281,13 +275,21 @@ class FixtureService
      */
     public function reloadFixtures()
     {
-        if ($this->databaseFile) {
-            $this->restoreFixtures();
+        if (!$this->databaseFile) {
+            $this->loadFixtures();
+
+            return;
+        }
+
+        if (file_exists($this->backupDbFile)) {
+            copy($this->backupDbFile, $this->databaseFile);
 
             return;
         }
 
         $this->loadFixtures();
+
+        copy($this->databaseFile, $this->backupDbFile);
     }
 
     /**
