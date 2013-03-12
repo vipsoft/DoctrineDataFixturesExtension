@@ -258,16 +258,16 @@ class FixtureService
 
         $this->databaseFile = $this->getDatabaseFile();
 
-        if ($this->databaseFile) {
-            if (!file_exists($this->databaseFile)) {
-                $this->createDatabase($this->databaseFile);
-            }
-
-            $cacheDirectory = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
-            $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->fixtures) . '.db';
+        if ($this->databaseFile && !file_exists($this->databaseFile)) {
+            $this->createDatabase($this->databaseFile);
         }
 
         $this->fixtures = $this->fetchFixtures();
+
+        if ($this->databaseFile) {
+            $cacheDirectory = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
+            $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->fixtures) . '.db';
+        }
     }
 
     /**
