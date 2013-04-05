@@ -50,9 +50,14 @@ Activate extension in your **behat.yml** and define any fixtures to be loaded:
       # ...
       extensions:
         VIPSoft\DoctrineDataFixturesExtension\Extension:
+          lifetime:    feature
           autoload:    true
           directories: ~
           fixtures:    ~
+
+When **lifetime** is set to "feature" (or unspecified), data fixtures are reloaded between feature files.  Alternately,
+when **lifetime** is set to "scenario", data fixtures are reloaded between scenarios (i.e., increased
+test isolation at the expense of increased run time).
 
 When **autoload** is true, the DoctrineDataFixtures extension will load the data fixtures for all
 registered bundles (similar to ``app/console doctrine:fixtures:load``).
@@ -70,6 +75,7 @@ from the respective directories.
       # ...
       extensions:
         VIPSoft\DoctrineDataFixturesExtension\Extension:
+          lifetime: feature
           autoload: true
           fixtures:
             - /project/src/AcmeAnalytics/Tests/DataFixtures/ORM
