@@ -46,7 +46,7 @@ class HookListener implements EventSubscriberInterface
             'beforeScenario',
             'afterScenario',
             'beforeOutlineExample',
-            'beforeOutlineExample',
+            'afterOutlineExample',
         );
 
         return array_combine($events, $events);
