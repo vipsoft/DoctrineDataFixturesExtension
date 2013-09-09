@@ -22,5 +22,10 @@
     },
     "autoload": {
         "psr-0": { "VIPSoft\\DoctrineDataFixturesExtension": "src/" }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.9.x-dev"
+        }
     }
 }

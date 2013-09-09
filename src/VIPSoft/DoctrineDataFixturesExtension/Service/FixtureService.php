@@ -6,6 +6,7 @@
 
 namespace VIPSoft\DoctrineDataFixturesExtension\Service;
 
+use Behat\Behat\Context\ExtendedContextInterface;
 use Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader as DoctrineFixturesLoader;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
@@ -18,6 +19,7 @@ use Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader as SymfonyF
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use VIPSoft\DoctrineDataFixturesExtension\EventListener\PlatformListener;
+use VIPSoft\DoctrineDataFixturesExtension\Context\FixtureAwareContextInterface;
 
 /**
  * Data Fixture Service
@@ -29,6 +31,8 @@ class FixtureService
     private $loader;
     private $autoload;
     private $fixtures;
+    private $hasContextFixtures;
+    private $contextFixtures;
     private $directories;
     private $kernel;
     private $entityManager;
@@ -48,6 +52,8 @@ class FixtureService
         $this->fixtures = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
         $this->directories = $container->getParameter('behat.doctrine_data_fixtures.directories');
         $this->kernel = $kernel;
+        $this->hasContextFixtures = false;
+        $this->contextFixtures = array();
     }
 
     /**
@@ -160,6 +166,10 @@ class FixtureService
     private function fetchFixturesFromClasses($classNames)
     {
         foreach ($classNames as $className) {
+            if (is_object($className)) {
+                $className = get_class($className);
+            }
+
             if (substr($className, 0, 1) !== '\\') {
                 $className = '\\' . $className;
             }
@@ -184,6 +194,10 @@ class FixtureService
         $this->fetchFixturesFromDirectories($bundleDirectories);
         $this->fetchFixturesFromDirectories($this->directories ?: array());
         $this->fetchFixturesFromClasses($this->fixtures ?: array());
+
+        if ($this->hasContextFixtures) {
+            $this->fetchFixturesFromClasses($this->contextFixtures ?: array());
+        }
 
         return $this->loader->getFixtures();
     }
@@ -247,6 +261,32 @@ class FixtureService
         $schemaTool = new SchemaTool($em);
         $schemaTool->dropDatabase($path);
         $schemaTool->createSchema($em->getMetadataFactory()->getAllMetadata());
+    }
+
+    /**
+     * @param ExtendedContextInterface $context
+     * @return bool
+     */
+    public function checkContextForFixtures(ExtendedContextInterface $context)
+    {
+        if ($context instanceof FixtureAwareContextInterface) {
+            $this->contextFixtures = array_unique(
+                array_merge(
+                    $this->contextFixtures,
+                    $context->getFixtures()
+                )
+            );
+
+            if (!$this->hasContextFixtures) {
+                $this->hasContextFixtures = true;
+            }
+        }
+
+        foreach ($context->getSubcontexts() as $subcontext) {
+            $this->checkContextForFixtures($subcontext);
+        }
+
+        return $this->hasContextFixtures;
     }
 
     /**

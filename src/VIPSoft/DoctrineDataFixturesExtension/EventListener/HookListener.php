@@ -29,8 +29,14 @@ class HookListener implements EventSubscriberInterface
      */
     private $fixtureService;
 
+    /**
+     * @var bool
+     */
+    private $contextFixturesCached;
+
     public function __construct($lifetime)
     {
+        $this->contextFixturesCached = false;
         $this->lifetime = $lifetime;
     }
 
@@ -110,8 +116,22 @@ class HookListener implements EventSubscriberInterface
      */
     public function beforeScenario(ScenarioEvent $event)
     {
-        if ('scenario' !== $this->lifetime) {
+        $hasFixturesFromContext = $this
+            ->fixtureService
+            ->checkContextForFixtures($event->getContext())
+        ;
+
+        if (!$hasFixturesFromContext && 'scenario' !== $this->lifetime) {
             return;
+        }
+
+        if ($hasFixturesFromContext && !$this->contextFixturesCached) {
+
+            $this
+                ->fixtureService
+                ->cacheFixtures();
+
+            $this->contextFixturesCached = true;
         }
 
         $this->fixtureService
@@ -125,7 +145,7 @@ class HookListener implements EventSubscriberInterface
      */
     public function afterScenario(ScenarioEvent $event)
     {
-        if ('scenario' !== $this->lifetime) {
+        if (!$this->contextFixturesCached && 'scenario' !== $this->lifetime) {
             return;
         }
 
