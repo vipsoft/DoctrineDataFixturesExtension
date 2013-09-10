@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2012 Anthon Pang
+ * @copyright 2013 Anthon Pang
  * @license MIT
  */
 

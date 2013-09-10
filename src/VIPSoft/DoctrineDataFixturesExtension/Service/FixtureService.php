@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2012 Anthon Pang
+ * @copyright 2013 Anthon Pang
  * @license MIT
  */
 
@@ -18,8 +18,8 @@ use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoa
 use Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader as SymfonyFixturesLoader;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Kernel;
-use VIPSoft\DoctrineDataFixturesExtension\EventListener\PlatformListener;
 use VIPSoft\DoctrineDataFixturesExtension\Context\FixtureAwareContextInterface;
+use VIPSoft\DoctrineDataFixturesExtension\EventListener\PlatformListener;
 
 /**
  * Data Fixture Service
@@ -31,7 +31,6 @@ class FixtureService
     private $loader;
     private $autoload;
     private $fixtures;
-    private $hasContextFixtures;
     private $contextFixtures;
     private $directories;
     private $kernel;
@@ -43,8 +42,8 @@ class FixtureService
     /**
      * Constructor
      *
-     * @param ContainerInterface $container Service container
-     * @param Kernel             $kernel    Application kernel
+     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container Service container
+     * @param \Symfony\Component\HttpKernel\Kernel                      $kernel    Application kernel
      */
     public function __construct(ContainerInterface $container, Kernel $kernel)
     {
@@ -52,7 +51,6 @@ class FixtureService
         $this->fixtures = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
         $this->directories = $container->getParameter('behat.doctrine_data_fixtures.directories');
         $this->kernel = $kernel;
-        $this->hasContextFixtures = false;
         $this->contextFixtures = array();
     }
 
@@ -135,25 +133,23 @@ class FixtureService
     }
 
     /**
-     * Load a data fixture class.
+     * Add data fixture
      *
-     * @param string $className Class name
+     * @param \Doctrine\Common\DataFixtures\FixtureInterface $fixture Fixture
      */
-    private function loadFixtureClass($className)
+    private function addFixture($fixture)
     {
-        $fixture = new $className();
-
         if ($this->loader->hasFixture($fixture)) {
             unset($fixture);
 
             return;
         }
 
-        $this->loader->addFixture(new $className());
+        $this->loader->addFixture($fixture);
 
         if ($fixture instanceof DependentFixtureInterface) {
             foreach ($fixture->getDependencies() as $dependency) {
-                $this->loadFixtureClass($dependency);
+                $this->addFixture(new $dependency());
             }
         }
     }
@@ -166,8 +162,10 @@ class FixtureService
     private function fetchFixturesFromClasses($classNames)
     {
         foreach ($classNames as $className) {
+            // FIXME: is this really a use-case that we need to support?
             if (is_object($className)) {
-                $className = get_class($className);
+                $this->addFixture($className);
+                continue;
             }
 
             if (substr($className, 0, 1) !== '\\') {
@@ -175,7 +173,7 @@ class FixtureService
             }
 
             if (! class_exists($className, false)) {
-                $this->loadFixtureClass($className);
+                $this->addFixture(new $className());
             }
         }
     }
@@ -194,10 +192,7 @@ class FixtureService
         $this->fetchFixturesFromDirectories($bundleDirectories);
         $this->fetchFixturesFromDirectories($this->directories ?: array());
         $this->fetchFixturesFromClasses($this->fixtures ?: array());
-
-        if ($this->hasContextFixtures) {
-            $this->fetchFixturesFromClasses($this->contextFixtures ?: array());
-        }
+        $this->fetchFixturesFromClasses($this->contextFixtures ?: array());
 
         return $this->loader->getFixtures();
     }
@@ -205,8 +200,8 @@ class FixtureService
     /**
      * Dispatch event
      *
-     * @param EntityManager $em    Entity manager
-     * @param string        $event Event name
+     * @param \Doctrine\ORM\EntityManager $em    Entity manager
+     * @param string                      $event Event name
      */
     private function dispatchEvent($em, $event)
     {
@@ -253,6 +248,8 @@ class FixtureService
 
     /**
      * Create database
+     *
+     * @param string $path
      */
     private function createDatabase($path)
     {
@@ -264,8 +261,11 @@ class FixtureService
     }
 
     /**
-     * @param ExtendedContextInterface $context
-     * @return bool
+     * Check context for fixtures
+     *
+     * @param \Behat\Behat\Context\ExtendedContextInterface $context
+     *
+     * @return boolean
      */
     public function checkContextForFixtures(ExtendedContextInterface $context)
     {
@@ -276,17 +276,13 @@ class FixtureService
                     $context->getFixtures()
                 )
             );
-
-            if (!$this->hasContextFixtures) {
-                $this->hasContextFixtures = true;
-            }
         }
 
         foreach ($context->getSubcontexts() as $subcontext) {
             $this->checkContextForFixtures($subcontext);
         }
 
-        return $this->hasContextFixtures;
+        return (bool) $this->contextFixtures;
     }
 
     /**

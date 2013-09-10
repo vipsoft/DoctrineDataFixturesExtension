@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2012 Anthon Pang
+ * @copyright 2013 Anthon Pang
  * @license MIT
  */
 
@@ -31,7 +31,7 @@ class PlatformListener implements EventSubscriber
     /**
      * Pre-truncate
      *
-     * @param LifecyleEventArgs $args
+     * @param \Doctrine\Common\Persistence\Event\LifecyleEventArgs $args
      */
     public function preTruncate(LifecycleEventArgs $args)
     {
@@ -46,7 +46,7 @@ class PlatformListener implements EventSubscriber
     /**
      * Post-truncate
      *
-     * @param LifecyleEventArgs $args
+     * @param \Doctrine\Common\Persistence\Event\LifecyleEventArgs $args
      */
     public function postTruncate(LifecycleEventArgs $args)
     {

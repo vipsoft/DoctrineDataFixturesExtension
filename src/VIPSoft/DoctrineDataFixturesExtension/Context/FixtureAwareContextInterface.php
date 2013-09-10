@@ -1,13 +1,17 @@
 <?php
 /**
- * @author Thomas Ploch <thomas.ploch@meinfernbus.de>
+ * @copyright 2013 Anthon Pang
+ * @license MIT
  */
+
 namespace VIPSoft\DoctrineDataFixturesExtension\Context;
 
 /**
  * Interface FixtureAwareContextInterface
  *
- * Use this interface to autoload datafixtures in beforeScenario events.
+ * Use this interface to autoload data fixtures in beforeScenario events.
+ *
+ * @author Thomas Ploch <thomas.ploch@meinfernbus.de>
  */
 interface FixtureAwareContextInterface
 {
