@@ -18,14 +18,14 @@
         "behat/symfony2-extension": "~1.0",
         "symfony/config": ">=2.0.0,<3.0-dev",
         "symfony/dependency-injection": ">=2.0.0,<3.0-dev",
-        "doctrine/data-fixtures": "dev-master"
+        "doctrine/data-fixtures": "~1.0"
     },
     "autoload": {
         "psr-0": { "VIPSoft\\DoctrineDataFixturesExtension": "src/" }
     },
     "extras": {
         "branch-alias": {
-            "dev-master": "0.9.x-dev"
+            "dev-master": "0.10.x-dev"
         }
     }
 }
