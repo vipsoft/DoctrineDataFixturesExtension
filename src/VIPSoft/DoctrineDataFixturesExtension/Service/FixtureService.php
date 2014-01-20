@@ -90,7 +90,7 @@ class FixtureService
     {
         $classNames = array_map('get_class', $fixtures);
 
-        foreach($classNames as & $className) {
+        foreach ($classNames as & $className) {
             $class    = new \ReflectionClass($className);
             $fileName = $class->getFileName();
 
@@ -258,7 +258,7 @@ class FixtureService
 
         $this->databaseFile = $this->getDatabaseFile();
 
-        if ($this->databaseFile && !file_exists($this->databaseFile)) {
+        if ($this->databaseFile && ! file_exists($this->databaseFile)) {
             $this->createDatabase($this->databaseFile);
         }
 
@@ -275,7 +275,7 @@ class FixtureService
      */
     public function reloadFixtures()
     {
-        if (!$this->databaseFile) {
+        if (! $this->databaseFile) {
             $this->loadFixtures();
 
             return;
