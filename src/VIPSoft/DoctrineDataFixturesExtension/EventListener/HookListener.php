@@ -6,10 +6,11 @@
 
 namespace VIPSoft\DoctrineDataFixturesExtension\EventListener;
 
-use Behat\Behat\Event\FeatureEvent;
-use Behat\Behat\Event\OutlineExampleEvent;
-use Behat\Behat\Event\ScenarioEvent;
-use Behat\Behat\Event\SuiteEvent;
+use Behat\Behat\Tester\Event\AbstractScenarioTested;
+use Behat\Behat\Tester\Event\ExampleTested;
+use Behat\Behat\Tester\Event\FeatureTested;
+use Behat\Behat\Tester\Event\ScenarioTested;
+use Behat\Testwork\Tester\Event\ExerciseCompleted;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -39,17 +40,15 @@ class HookListener implements EventSubscriberInterface
      */
     public static function getSubscribedEvents()
     {
-        $events = array(
-            'beforeSuite',
-            'beforeFeature',
-            'afterFeature',
-            'beforeScenario',
-            'afterScenario',
-            'beforeOutlineExample',
-            'afterOutlineExample',
+        return array(
+            ExerciseCompleted::BEFORE => 'beforeExercise',
+            FeatureTested::BEFORE     => 'beforeFeature',
+            FeatureTested::AFTER      => 'afterFeature',
+            ExampleTested::BEFORE     => 'beforeScenario',
+            ScenarioTested::BEFORE    => 'beforeScenario',
+            ExampleTested::AFTER      => 'afterScenario',
+            ScenarioTested::AFTER     => 'afterScenario',
         );
-
-        return array_combine($events, $events);
     }
 
     /**
@@ -63,11 +62,11 @@ class HookListener implements EventSubscriberInterface
     }
 
     /**
-     * Listens to "suite.before" event.
+     * Listens to "exercise.before" event.
      *
-     * @param SuiteEvent $event
+     * @param ExerciseTested $event
      */
-    public function beforeSuite(SuiteEvent $event)
+    public function beforeExercise(ExerciseTested $event)
     {
         $this->fixtureService
              ->cacheFixtures();
@@ -76,9 +75,9 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "feature.before" event.
      *
-     * @param FeatureEvent $event
+     * @param FeatureTested $event
      */
-    public function beforeFeature(FeatureEvent $event)
+    public function beforeFeature(FeatureTested $event)
     {
         if ('feature' !== $this->lifetime) {
             return;
@@ -91,9 +90,9 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "feature.after" event.
      *
-     * @param FeatureEvent $event
+     * @param FeatureTested $event
      */
-    public function afterFeature(FeatureEvent $event)
+    public function afterFeature(FeatureTested $event)
     {
         if ('feature' !== $this->lifetime) {
             return;
@@ -104,11 +103,11 @@ class HookListener implements EventSubscriberInterface
     }
 
     /**
-     * Listens to "scenario.before" event.
+     * Listens to "scenario.before" and "outline.example.before" event.
      *
-     * @param ScenarioEvent $event
+     * @param AbstractScenarioTested $event
      */
-    public function beforeScenario(ScenarioEvent $event)
+    public function beforeScenario(AbstractScenarioTested $event)
     {
         if ('scenario' !== $this->lifetime) {
             return;
@@ -119,41 +118,11 @@ class HookListener implements EventSubscriberInterface
     }
 
     /**
-     * Listens to "scenario.after" event.
+     * Listens to "scenario.after" and "outline.example.after" event.
      *
-     * @param ScenarioEvent $event
+     * @param AbstractScenarioTested $event
      */
-    public function afterScenario(ScenarioEvent $event)
-    {
-        if ('scenario' !== $this->lifetime) {
-            return;
-        }
-
-        $this->fixtureService
-             ->flush();
-    }
-
-    /**
-     * Listens to "outline.example.before" event.
-     *
-     * @param OutlineExampleEvent $event
-     */
-    public function beforeOutlineExample(OutlineExampleEvent $event)
-    {
-        if ('scenario' !== $this->lifetime) {
-            return;
-        }
-
-        $this->fixtureService
-             ->reloadFixtures();
-    }
-
-    /**
-     * Listens to "outline.example.after" event.
-     *
-     * @param OutlineExampleEvent $event
-     */
-    public function afterOutlineExample(OutlineExampleEvent $event)
+    public function afterScenario(AbstractScenarioTested $event)
     {
         if ('scenario' !== $this->lifetime) {
             return;

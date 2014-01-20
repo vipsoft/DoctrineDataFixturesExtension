@@ -6,7 +6,8 @@
 
 namespace VIPSoft\DoctrineDataFixturesExtension;
 
-use Behat\Behat\Extension\ExtensionInterface;
+use Behat\Testwork\ServiceContainer\Extension\Extension as ExtensionInterface;
+use Behat\Testwork\ServiceContainer\ExtensionManager;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -22,7 +23,49 @@ class Extension implements ExtensionInterface
     /**
      * {@inheritdoc}
      */
-    public function load(array $config, ContainerBuilder $container)
+    public function getConfigKey()
+    {
+        return 'doctrine_data_fixtures';
+    }
+
+    /**
+      * {@inheritdoc}
+      */
+    public function initialize(ExtensionManager $extensionManager)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function configure(ArrayNodeDefinition $builder)
+    {
+        $builder
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->scalarNode('autoload')
+                    ->defaultValue(true)
+                ->end()
+                ->arrayNode('directories')
+                    ->prototype('scalar')->end()
+                ->end()
+                ->arrayNode('fixtures')
+                    ->prototype('scalar')->end()
+                ->end()
+                ->scalarNode('lifetime')
+                    ->defaultValue('feature')
+                    ->validate()
+                        ->ifNotInArray(array('feature', 'scenario'))
+                        ->thenInvalid('Invalid fixtures lifetime "%s"')
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function load(ContainerBuilder $container, array $config)
     {
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/services'));
         $loader->load('core.xml');
@@ -43,36 +86,7 @@ class Extension implements ExtensionInterface
     /**
      * {@inheritdoc}
      */
-    public function getConfig(ArrayNodeDefinition $builder)
+    public function process(ContainerBuilder $container)
     {
-        $builder->
-            children()->
-                scalarNode('autoload')->
-                    defaultValue(true)->
-                end()->
-                arrayNode('directories')->
-                    prototype('scalar')->end()->
-                end()->
-                arrayNode('fixtures')->
-                    prototype('scalar')->end()->
-                end()->
-                scalarNode('lifetime')->
-                    defaultValue('feature')->
-                    validate()->
-                        ifNotInArray(array('feature', 'scenario'))->
-                        thenInvalid('Invalid fixtures lifetime "%s"')->
-                    end()->
-                end()->
-            end()->
-        end();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getCompilerPasses()
-    {
-        return array(
-        );
     }
 }

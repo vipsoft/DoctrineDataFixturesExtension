@@ -14,7 +14,7 @@
             <call method="setFixtureService">
                 <argument type="service" id="behat.doctrine_data_fixtures.service.fixture_loader" />
             </call>
-            <tag name="behat.event_subscriber" priority="0" />
+            <tag name="event_dispatcher.subscriber" />
         </service>
 
         <service id="behat.doctrine_data_fixtures.service.fixture_loader" class="%behat.doctrine_data_fixtures.service.fixture_loader.class%">
