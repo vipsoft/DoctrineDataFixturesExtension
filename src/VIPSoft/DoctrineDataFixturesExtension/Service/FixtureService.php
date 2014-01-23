@@ -10,6 +10,7 @@ use Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader as DoctrineFixture
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -36,6 +37,11 @@ class FixtureService
     private $databaseFile;
     private $backupDbFile;
     protected $useBackup = true;
+
+    /**
+     * @var ReferenceRepository
+     */
+    protected $referenceRepository;
 
     /**
      * Constructor
@@ -219,6 +225,7 @@ class FixtureService
         $executor = new ORMExecutor($em, $purger);
         $executor->purge();
         $executor->execute($this->fixtures, true);
+        $this->referenceRepository = $executor->getReferenceRepository();
 
         $this->dispatchEvent($em, 'postTruncate');
     }
@@ -314,5 +321,15 @@ class FixtureService
         if ($cacheDriver) {
             $cacheDriver->deleteAll();
         }
+    }
+
+    /**
+     * Returns the reference repository while loading the fixtures.
+     *
+     * @return \Doctrine\Common\DataFixtures\ReferenceRepository|null
+     */
+    public function getReferenceRepository()
+    {
+        return $this->referenceRepository;
     }
 }
