@@ -36,6 +36,9 @@ class Extension implements ExtensionInterface
         if (isset($config['fixtures'])) {
             $container->setParameter('behat.doctrine_data_fixtures.fixtures', $config['fixtures']);
         }
+        if (isset($config['use_backup'])) {
+            $container->setParameter('behat.doctrine_data_fixtures.use_backup', $config['use_backup']);
+        }
 
         $container->setParameter('behat.doctrine_data_fixtures.lifetime', $config['lifetime']);
     }
@@ -62,6 +65,9 @@ class Extension implements ExtensionInterface
                         ifNotInArray(array('feature', 'scenario'))->
                         thenInvalid('Invalid fixtures lifetime "%s"')->
                     end()->
+                end()->
+                scalarNode('use_backup')->
+                    defaultValue(true)->
                 end()->
             end()->
         end();

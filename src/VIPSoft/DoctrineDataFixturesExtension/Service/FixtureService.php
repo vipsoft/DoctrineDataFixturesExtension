@@ -35,19 +35,22 @@ class FixtureService
     private $listener;
     private $databaseFile;
     private $backupDbFile;
+    protected $useBackup = true;
 
     /**
      * Constructor
      *
      * @param ContainerInterface $container Service container
      * @param Kernel             $kernel    Application kernel
+     * @param boolean            $useBackup Whether to use a backup of the sqlite database when loading features.
      */
-    public function __construct(ContainerInterface $container, Kernel $kernel)
+    public function __construct(ContainerInterface $container, Kernel $kernel, $useBackup)
     {
         $this->autoload = $container->getParameter('behat.doctrine_data_fixtures.autoload');
         $this->fixtures = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
         $this->directories = $container->getParameter('behat.doctrine_data_fixtures.directories');
         $this->kernel = $kernel;
+        $this->useBackup = $useBackup;
     }
 
     /**
@@ -275,6 +278,11 @@ class FixtureService
      */
     public function reloadFixtures()
     {
+        if (!$this->useBackup) {
+            $this->loadFixtures();
+            return;
+        }
+
         if (! $this->databaseFile) {
             $this->loadFixtures();
 
