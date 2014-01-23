@@ -10,6 +10,7 @@ use Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader as DoctrineFixture
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -35,19 +36,27 @@ class FixtureService
     private $listener;
     private $databaseFile;
     private $backupDbFile;
+    protected $useBackup = true;
+
+    /**
+     * @var ReferenceRepository
+     */
+    protected $referenceRepository;
 
     /**
      * Constructor
      *
      * @param ContainerInterface $container Service container
      * @param Kernel             $kernel    Application kernel
+     * @param boolean            $useBackup Whether to use a backup of the sqlite database when loading features.
      */
-    public function __construct(ContainerInterface $container, Kernel $kernel)
+    public function __construct(ContainerInterface $container, Kernel $kernel, $useBackup)
     {
         $this->autoload = $container->getParameter('behat.doctrine_data_fixtures.autoload');
         $this->fixtures = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
         $this->directories = $container->getParameter('behat.doctrine_data_fixtures.directories');
         $this->kernel = $kernel;
+        $this->useBackup = $useBackup;
     }
 
     /**
@@ -216,6 +225,7 @@ class FixtureService
         $executor = new ORMExecutor($em, $purger);
         $executor->purge();
         $executor->execute($this->fixtures, true);
+        $this->referenceRepository = $executor->getReferenceRepository();
 
         $this->dispatchEvent($em, 'postTruncate');
     }
@@ -275,6 +285,11 @@ class FixtureService
      */
     public function reloadFixtures()
     {
+        if (!$this->useBackup) {
+            $this->loadFixtures();
+            return;
+        }
+
         if (! $this->databaseFile) {
             $this->loadFixtures();
 
@@ -306,5 +321,15 @@ class FixtureService
         if ($cacheDriver) {
             $cacheDriver->deleteAll();
         }
+    }
+
+    /**
+     * Returns the reference repository while loading the fixtures.
+     *
+     * @return \Doctrine\Common\DataFixtures\ReferenceRepository|null
+     */
+    public function getReferenceRepository()
+    {
+        return $this->referenceRepository;
     }
 }
