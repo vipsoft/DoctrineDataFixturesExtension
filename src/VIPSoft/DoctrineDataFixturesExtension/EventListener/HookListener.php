@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2012 Anthon Pang
+ * @copyright 2014 Anthon Pang
  * @license MIT
  */
 
@@ -54,7 +54,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Set fixture service
      *
-     * @param object $service
+     * @param \VIPSoft\DoctrineDataFixturesExtension\Service\FixtureService $service
      */
     public function setFixtureService($service)
     {
@@ -64,9 +64,9 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "exercise.before" event.
      *
-     * @param ExerciseTested $event
+     * @param \Behat\Testwork\Tester\Event\ExerciseCompleted $event
      */
-    public function beforeExercise(ExerciseTested $event)
+    public function beforeExercise(ExerciseCompleted $event)
     {
         $this->fixtureService
              ->cacheFixtures();
@@ -75,7 +75,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "feature.before" event.
      *
-     * @param FeatureTested $event
+     * @param \Behat\Behat\Tester\Event\FeatureTested $event
      */
     public function beforeFeature(FeatureTested $event)
     {
@@ -90,7 +90,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "feature.after" event.
      *
-     * @param FeatureTested $event
+     * @param \Behat\Behat\Tester\Event\FeatureTested $event
      */
     public function afterFeature(FeatureTested $event)
     {
@@ -105,7 +105,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "scenario.before" and "outline.example.before" event.
      *
-     * @param AbstractScenarioTested $event
+     * @param \Behat\Behat\Tester\Event\AbstractScenarioTested $event
      */
     public function beforeScenario(AbstractScenarioTested $event)
     {
@@ -120,7 +120,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "scenario.after" and "outline.example.after" event.
      *
-     * @param AbstractScenarioTested $event
+     * @param \Behat\Behat\Tester\Event\AbstractScenarioTested $event
      */
     public function afterScenario(AbstractScenarioTested $event)
     {

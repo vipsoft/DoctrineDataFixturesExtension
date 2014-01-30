@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2012 Anthon Pang
+ * @copyright 2014 Anthon Pang
  * @license MIT
  */
 
@@ -31,12 +31,12 @@ class PlatformListener implements EventSubscriber
     /**
      * Pre-truncate
      *
-     * @param LifecyleEventArgs $args
+     * @param \Doctrine\Common\Persistence\Event\LifecycleEventArgs $args
      */
     public function preTruncate(LifecycleEventArgs $args)
     {
         $connection = $args->getObjectManager()->getConnection();
-        $platform = $connection->getDatabasePlatform();
+        $platform   = $connection->getDatabasePlatform();
 
         if ($platform instanceof MySqlPlatform) {
             $connection->exec('SET foreign_key_checks = 0;');
@@ -46,12 +46,12 @@ class PlatformListener implements EventSubscriber
     /**
      * Post-truncate
      *
-     * @param LifecyleEventArgs $args
+     * @param \Doctrine\Common\Persistence\Event\LifecyleEventArgs $args
      */
     public function postTruncate(LifecycleEventArgs $args)
     {
         $connection = $args->getObjectManager()->getConnection();
-        $platform = $connection->getDatabasePlatform();
+        $platform   = $connection->getDatabasePlatform();
 
         if ($platform instanceof MySqlPlatform) {
             $connection->exec('SET foreign_key_checks = 1;');

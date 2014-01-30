@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2012 Anthon Pang
+ * @copyright 2014 Anthon Pang
  * @license MIT
  */
 
@@ -10,6 +10,7 @@ use Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader as DoctrineFixture
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -35,19 +36,36 @@ class FixtureService
     private $listener;
     private $databaseFile;
     private $backupDbFile;
+    private $useBackup;
+
+    /**
+     * @var \Doctrine\Common\DataFixtures\ReferenceRepository
+     */
+    private $referenceRepository;
 
     /**
      * Constructor
      *
-     * @param ContainerInterface $container Service container
-     * @param Kernel             $kernel    Application kernel
+     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container Service container
+     * @param \Symfony\Component\HttpKernel\Kernel                      $kernel    Application kernel
      */
     public function __construct(ContainerInterface $container, Kernel $kernel)
     {
-        $this->autoload = $container->getParameter('behat.doctrine_data_fixtures.autoload');
-        $this->fixtures = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
+        $this->autoload    = $container->getParameter('behat.doctrine_data_fixtures.autoload');
+        $this->fixtures    = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
         $this->directories = $container->getParameter('behat.doctrine_data_fixtures.directories');
-        $this->kernel = $kernel;
+        $this->useBackup   = $container->getParameter('behat.doctrine_data_fixtures.use_backup');
+        $this->kernel      = $kernel;
+    }
+
+    /**
+     * Returns the reference repository while loading the fixtures.
+     *
+     * @return \Doctrine\Common\DataFixtures\ReferenceRepository|null
+     */
+    public function getReferenceRepository()
+    {
+        return $this->referenceRepository;
     }
 
     /**
@@ -191,8 +209,8 @@ class FixtureService
     /**
      * Dispatch event
      *
-     * @param EntityManager $em    Entity manager
-     * @param string        $event Event name
+     * @param \Doctrine\ORM\EntityManager $em    Entity manager
+     * @param string                      $event Event name
      */
     private function dispatchEvent($em, $event)
     {
@@ -216,6 +234,8 @@ class FixtureService
         $executor = new ORMExecutor($em, $purger);
         $executor->purge();
         $executor->execute($this->fixtures, true);
+
+        $this->referenceRepository = $executor->getReferenceRepository();
 
         $this->dispatchEvent($em, 'postTruncate');
     }
@@ -275,7 +295,7 @@ class FixtureService
      */
     public function reloadFixtures()
     {
-        if (! $this->databaseFile) {
+        if (! $this->useBackup || ! $this->databaseFile) {
             $this->loadFixtures();
 
             return;

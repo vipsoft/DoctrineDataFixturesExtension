@@ -20,6 +20,7 @@
         <service id="behat.doctrine_data_fixtures.service.fixture_loader" class="%behat.doctrine_data_fixtures.service.fixture_loader.class%">
             <argument type="service" id="service_container" />
             <argument type="service" id="behat.symfony2_extension.kernel" />
+            <argument>%behat.doctrine_data_fixtures.use_backup%</argument>
         </service>
     </services>
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2012 Anthon Pang
+ * @copyright 2014 Anthon Pang
  * @license MIT
  */
 
@@ -59,6 +59,9 @@ class Extension implements ExtensionInterface
                         ->thenInvalid('Invalid fixtures lifetime "%s"')
                     ->end()
                 ->end()
+                ->scalarNode('use_backup')
+                    ->defaultValue(true)
+                ->end()
             ->end();
     }
 
@@ -73,12 +76,19 @@ class Extension implements ExtensionInterface
         if (isset($config['autoload'])) {
             $container->setParameter('behat.doctrine_data_fixtures.autoload', $config['autoload']);
         }
+
         if (isset($config['directories'])) {
             $container->setParameter('behat.doctrine_data_fixtures.directories', $config['directories']);
         }
+
         if (isset($config['fixtures'])) {
             $container->setParameter('behat.doctrine_data_fixtures.fixtures', $config['fixtures']);
         }
+
+        $container->setParameter(
+            'behat.doctrine_data_fixtures.use_backup',
+            isset($config['use_backup']) ? $config['use_backup'] : true
+        );
 
         $container->setParameter('behat.doctrine_data_fixtures.lifetime', $config['lifetime']);
     }
