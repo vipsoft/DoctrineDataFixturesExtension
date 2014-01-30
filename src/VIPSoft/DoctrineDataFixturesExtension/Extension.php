@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2012 Anthon Pang
+ * @copyright 2014 Anthon Pang
  * @license MIT
  */
 
@@ -19,30 +19,6 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
  */
 class Extension implements ExtensionInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function load(array $config, ContainerBuilder $container)
-    {
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/services'));
-        $loader->load('core.xml');
-
-        if (isset($config['autoload'])) {
-            $container->setParameter('behat.doctrine_data_fixtures.autoload', $config['autoload']);
-        }
-        if (isset($config['directories'])) {
-            $container->setParameter('behat.doctrine_data_fixtures.directories', $config['directories']);
-        }
-        if (isset($config['fixtures'])) {
-            $container->setParameter('behat.doctrine_data_fixtures.fixtures', $config['fixtures']);
-        }
-        if (isset($config['use_backup'])) {
-            $container->setParameter('behat.doctrine_data_fixtures.use_backup', $config['use_backup']);
-        }
-
-        $container->setParameter('behat.doctrine_data_fixtures.lifetime', $config['lifetime']);
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -69,8 +45,35 @@ class Extension implements ExtensionInterface
                 scalarNode('use_backup')->
                     defaultValue(true)->
                 end()->
-            end()->
-        end();
+            end();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function load(array $config, ContainerBuilder $container)
+    {
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/services'));
+        $loader->load('core.xml');
+
+        if (isset($config['autoload'])) {
+            $container->setParameter('behat.doctrine_data_fixtures.autoload', $config['autoload']);
+        }
+
+        if (isset($config['directories'])) {
+            $container->setParameter('behat.doctrine_data_fixtures.directories', $config['directories']);
+        }
+
+        if (isset($config['fixtures'])) {
+            $container->setParameter('behat.doctrine_data_fixtures.fixtures', $config['fixtures']);
+        }
+
+        $container->setParameter(
+            'behat.doctrine_data_fixtures.use_backup',
+            isset($config['use_backup']) ? $config['use_backup'] : true
+        );
+
+        $container->setParameter('behat.doctrine_data_fixtures.lifetime', $config['lifetime']);
     }
 
     /**

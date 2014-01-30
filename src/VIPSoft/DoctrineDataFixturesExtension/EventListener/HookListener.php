@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2012 Anthon Pang
+ * @copyright 2014 Anthon Pang
  * @license MIT
  */
 
@@ -55,7 +55,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Set fixture service
      *
-     * @param object $service
+     * @param \VIPSoft\DoctrineDataFixturesExtension\Service\FixtureService $service
      */
     public function setFixtureService($service)
     {
@@ -65,7 +65,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "suite.before" event.
      *
-     * @param SuiteEvent $event
+     * @param \Behat\Behat\Event\SuiteEvent $event
      */
     public function beforeSuite(SuiteEvent $event)
     {
@@ -76,7 +76,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "feature.before" event.
      *
-     * @param FeatureEvent $event
+     * @param \Behat\Behat\Event\FeatureEvent $event
      */
     public function beforeFeature(FeatureEvent $event)
     {
@@ -91,7 +91,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "feature.after" event.
      *
-     * @param FeatureEvent $event
+     * @param \Behat\Behat\Event\FeatureEvent $event
      */
     public function afterFeature(FeatureEvent $event)
     {
@@ -106,7 +106,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "scenario.before" event.
      *
-     * @param ScenarioEvent $event
+     * @param \Behat\Behat\Event\ScenarioEvent $event
      */
     public function beforeScenario(ScenarioEvent $event)
     {
@@ -121,7 +121,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "scenario.after" event.
      *
-     * @param ScenarioEvent $event
+     * @param \Behat\Behat\Event\ScenarioEvent $event
      */
     public function afterScenario(ScenarioEvent $event)
     {
@@ -136,7 +136,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "outline.example.before" event.
      *
-     * @param OutlineExampleEvent $event
+     * @param \Behat\Behat\Event\OutlineExampleEvent $event
      */
     public function beforeOutlineExample(OutlineExampleEvent $event)
     {
@@ -151,7 +151,7 @@ class HookListener implements EventSubscriberInterface
     /**
      * Listens to "outline.example.after" event.
      *
-     * @param OutlineExampleEvent $event
+     * @param \Behat\Behat\Event\OutlineExampleEvent $event
      */
     public function afterOutlineExample(OutlineExampleEvent $event)
     {
