@@ -70,8 +70,8 @@ class Extension implements ExtensionInterface
      */
     public function load(ContainerBuilder $container, array $config)
     {
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/services'));
-        $loader->load('core.xml');
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/Resources/config'));
+        $loader->load('services.xml');
 
         if (isset($config['autoload'])) {
             $container->setParameter('behat.doctrine_data_fixtures.autoload', $config['autoload']);
