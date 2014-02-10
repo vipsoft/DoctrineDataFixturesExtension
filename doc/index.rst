@@ -62,11 +62,11 @@ test isolation at the expense of increased run time).
 When **autoload** is true, the DoctrineDataFixtures extension will load the data fixtures for all
 registered bundles (similar to ``app/console doctrine:fixtures:load``).
 
-When **fixtures** is set, the DoctrineDataFixtures extension will load the specified fixture
-classes.
+When **fixtures** is set and **autoload** is false, the DoctrineDataFixtures
+extension will load the specified fixture classes.
 
-When **directories** is set, the DoctrineDataFixtures extension will load the data fixtures globbed
-from the respective directories.
+When **directories** is set and **autoload** is false, the DoctrineDataFixtures
+extension will load the data fixtures globbed from the respective directories.
 
 .. code-block:: yaml
 
@@ -77,9 +77,9 @@ from the respective directories.
         VIPSoft\DoctrineDataFixturesExtension\Extension:
           lifetime: feature
           autoload: true
-          fixtures:
-            - /project/src/AcmeAnalytics/Tests/DataFixtures/ORM
           directories:
+            - /project/src/AcmeAnalytics/Tests/DataFixtures/ORM
+          fixtures:
             - Acme\StoreBundle\DataFixture\ORM\Categories
             - Acme\StoreBundle\DataFixture\ORM\Apps
             - Acme\VendorBundle\DataFixture\ORM\Vendors
