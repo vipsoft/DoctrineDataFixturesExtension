@@ -6,7 +6,7 @@
 
 namespace VIPSoft\DoctrineDataFixturesExtension;
 
-use Behat\Testwork\ServiceContainer\Extension\Extension as ExtensionInterface;
+use Behat\Testwork\ServiceContainer\Extension as ExtensionInterface;
 use Behat\Testwork\ServiceContainer\ExtensionManager;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\FileLocator;
