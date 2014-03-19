@@ -6,11 +6,10 @@
 
 namespace VIPSoft\DoctrineDataFixturesExtension\EventListener;
 
-use Behat\Behat\Tester\Event\AbstractScenarioTested;
-use Behat\Behat\Tester\Event\ExampleTested;
-use Behat\Behat\Tester\Event\FeatureTested;
-use Behat\Behat\Tester\Event\ScenarioTested;
-use Behat\Testwork\Tester\Event\ExerciseCompleted;
+use Behat\Behat\EventDispatcher\Event\FeatureTested;
+use Behat\Behat\EventDispatcher\Event\ScenarioTested;
+use Behat\Behat\EventDispatcher\Event\ExampleTested;
+use Behat\Testwork\EventDispatcher\Event\ExerciseCompleted;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -107,7 +106,7 @@ class HookListener implements EventSubscriberInterface
      *
      * @param \Behat\Behat\Tester\Event\AbstractScenarioTested $event
      */
-    public function beforeScenario(AbstractScenarioTested $event)
+    public function beforeScenario(ScenarioTested $event)
     {
         if ('scenario' !== $this->lifetime) {
             return;
@@ -122,7 +121,7 @@ class HookListener implements EventSubscriberInterface
      *
      * @param \Behat\Behat\Tester\Event\AbstractScenarioTested $event
      */
-    public function afterScenario(AbstractScenarioTested $event)
+    public function afterScenario(ScenarioTested $event)
     {
         if ('scenario' !== $this->lifetime) {
             return;
