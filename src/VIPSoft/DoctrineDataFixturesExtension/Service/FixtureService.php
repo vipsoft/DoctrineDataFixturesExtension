@@ -9,6 +9,7 @@ namespace VIPSoft\DoctrineDataFixturesExtension\Service;
 use Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader as DoctrineFixturesLoader;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
+use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
@@ -39,7 +40,7 @@ class FixtureService
     private $useBackup;
 
     /**
-     * @var \Doctrine\Common\DataFixtures\ReferenceRepository
+     * @var ProxyReferenceRepository
      */
     private $referenceRepository;
 
@@ -77,6 +78,8 @@ class FixtureService
 
         $this->entityManager = $this->kernel->getContainer()->get('doctrine')->getManager();
         $this->entityManager->getEventManager()->addEventSubscriber($this->listener);
+
+        $this->referenceRepository = new ProxyReferenceRepository($this->entityManager);
     }
 
     /**
@@ -232,10 +235,9 @@ class FixtureService
         $purger->setPurgeMode(ORMPurger::PURGE_MODE_TRUNCATE);
 
         $executor = new ORMExecutor($em, $purger);
+        $executor->setReferenceRepository($this->referenceRepository);
         $executor->purge();
         $executor->execute($this->fixtures, true);
-
-        $this->referenceRepository = $executor->getReferenceRepository();
 
         $this->dispatchEvent($em, 'postTruncate');
     }
@@ -303,6 +305,7 @@ class FixtureService
 
         if (file_exists($this->backupDbFile)) {
             copy($this->backupDbFile, $this->databaseFile);
+            $this->referenceRepository->load($this->backupDbFile);
 
             return;
         }
@@ -310,6 +313,7 @@ class FixtureService
         $this->loadFixtures();
 
         copy($this->databaseFile, $this->backupDbFile);
+        $this->referenceRepository->save($this->backupDbFile);
     }
 
     /**
