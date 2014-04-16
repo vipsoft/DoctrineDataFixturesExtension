@@ -29,6 +29,9 @@ class Extension implements ExtensionInterface
                 scalarNode('autoload')->
                     defaultValue(true)->
                 end()->
+                arrayNode('migrations')->
+                    prototype('scalar')->end()->
+                end()->
                 arrayNode('directories')->
                     prototype('scalar')->end()->
                 end()->
@@ -58,6 +61,10 @@ class Extension implements ExtensionInterface
 
         if (isset($config['autoload'])) {
             $container->setParameter('behat.doctrine_data_fixtures.autoload', $config['autoload']);
+        }
+
+        if (isset($config['migrations'])) {
+            $container->setParameter('behat.doctrine_data_fixtures.migrations', $config['migrations']);
         }
 
         if (isset($config['directories'])) {
