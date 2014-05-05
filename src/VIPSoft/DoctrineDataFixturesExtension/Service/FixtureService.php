@@ -230,6 +230,10 @@ class FixtureService
      */
     private function fetchMigrations()
     {
+        if ( ! isset($this->migrations)) {
+            return null;
+        }
+
         if (empty($this->migrations)) {
             return array();
         }
@@ -311,19 +315,23 @@ class FixtureService
     private function runMigrations()
     {
         $connection   = $this->entityManager->getConnection();
-
-/*
+        $container    = $this->kernel->getContainer();
         $outputWriter = new OutputWriter(function () {});
 
-        $configuration = new Configuration($connection, $outputWriter);
-        $configuration->setMigrationsNamespace();
-        $configuration->setMigrationsDirectory();
-        $configuration->setName();
-        $configuration->setMigrationsTableName();
+        $namespace    = $container->getParameter('doctrine_migrations.namespace');
+        if ($namespace) {
+            $directory = $container->getParameter('doctrine_migrations.dir_name');
 
-        $migration = new Migration($configuration);
-        $sql       = $migration->migrate(null, false);
-*/
+            $configuration = new Configuration($connection, $outputWriter);
+            $configuration->setMigrationsNamespace($namespace);
+            $configuration->setMigrationsDirectory($directory);
+            $configuration->registerMigrationsFromDirectory($directory);
+            $configuration->setName($container->getParameter('doctrine_migrations.name'));
+            $configuration->setMigrationsTableName($container->getParameter('doctrine_migrations.table_name'));
+
+            $migration = new Migration($configuration);
+            $migration->migrate(null, false);
+        }
 
         foreach ($this->migrations as $migration) {
             foreach (explode("\n", trim(file_get_contents($migration))) as $sql) {
@@ -383,7 +391,7 @@ class FixtureService
         }
 
         $cacheDirectory     = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
-        $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->migrations, $this->fixtures) . '.db';
+        $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->migrations ?: array(), $this->fixtures) . '.db';
     }
 
     /**
@@ -403,7 +411,7 @@ class FixtureService
             return;
         }
 
-        $this->createDatabase($this->databaseFile, empty($this->migrations));
+        $this->createDatabase($this->databaseFile, ! isset($this->migrations));
         $this->loadFixtures();
 
         copy($this->databaseFile, $this->backupDbFile);
