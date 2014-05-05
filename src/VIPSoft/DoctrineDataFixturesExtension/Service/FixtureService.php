@@ -309,16 +309,17 @@ class FixtureService
      */
     private function runMigrations()
     {
-        $outputWriter = new OutputWriter(function () {});
+        $connection    = $this->entityManager->getConnection();
+        $outputWriter  = new OutputWriter(function () {});
+        $configuration = new Configuration($connection, $outputWriter);
+        $migration     = new Migration($configuration);
+        $sql           = $migration->migration(null, false);
 
-        $configuration = new Configuration(
-            $this->entityManager->getConnection(),
-            $outputWriter
-        );
-
-        $migration = new Migration($configuration);
-
-        $sql = $migration->migration(null, false);
+        foreach ($this->migrations as $migration) {
+            foreach (explode("\n", trim(file_get_contents($migration))) as $sql) {
+                $connection->executeQuery($sql);
+            }
+        }
     }
 
     /**
