@@ -13,6 +13,8 @@ use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
+use Doctrine\DBAL\Migrations\Configuration\Configuration;
+use Doctrine\DBAL\Migrations\Migration;
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoader;
 use Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader as SymfonyFixturesLoader;
@@ -307,16 +309,16 @@ class FixtureService
      */
     private function runMigrations()
     {
-        $connection = $this->entityManager->getConnection();
+        $outputWriter = new OutputWriter(function () {});
 
-        foreach ($this->migrations as $migration) {
-            foreach (explode("\n", trim(file_get_contents($migration))) as $sql) {
-                try {
-                    $connection->executeQuery($sql);
-                } catch (\Exception $e) {
-                }
-            }
-        }
+        $configuration = new Configuration(
+            $this->entityManager->getConnection(),
+            $outputWriter
+        );
+
+        $migration = new Migration($configuration);
+
+        $sql = $migration->migration(null, false);
     }
 
     /**
