@@ -15,6 +15,7 @@ use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\DBAL\Migrations\Configuration\Configuration;
 use Doctrine\DBAL\Migrations\Migration;
+use Doctrine\DBAL\Migrations\OutputWriter;
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoader;
 use Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader as SymfonyFixturesLoader;
@@ -309,11 +310,20 @@ class FixtureService
      */
     private function runMigrations()
     {
-        $connection    = $this->entityManager->getConnection();
-        $outputWriter  = new OutputWriter(function () {});
+        $connection   = $this->entityManager->getConnection();
+
+/*
+        $outputWriter = new OutputWriter(function () {});
+
         $configuration = new Configuration($connection, $outputWriter);
-        $migration     = new Migration($configuration);
-        $sql           = $migration->migration(null, false);
+        $configuration->setMigrationsNamespace();
+        $configuration->setMigrationsDirectory();
+        $configuration->setName();
+        $configuration->setMigrationsTableName();
+
+        $migration = new Migration($configuration);
+        $sql       = $migration->migrate(null, false);
+*/
 
         foreach ($this->migrations as $migration) {
             foreach (explode("\n", trim(file_get_contents($migration))) as $sql) {
