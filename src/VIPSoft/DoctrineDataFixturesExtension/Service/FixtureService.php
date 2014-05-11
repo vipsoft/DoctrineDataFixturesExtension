@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2014 Anthon Pang
  * @license MIT
@@ -7,19 +8,12 @@
 namespace VIPSoft\DoctrineDataFixturesExtension\Service;
 
 use Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader as DoctrineFixturesLoader;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\Common\DataFixtures\ReferenceRepository;
-use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
-use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
-use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoader;
 use Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader as SymfonyFixturesLoader;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Kernel;
-use VIPSoft\DoctrineDataFixturesExtension\EventListener\PlatformListener;
+use VIPSoft\DoctrineDataFixturesExtension\FixtureExecutor\AbstractFixtureExecutor;
 
 /**
  * Data Fixture Service
@@ -28,17 +22,9 @@ use VIPSoft\DoctrineDataFixturesExtension\EventListener\PlatformListener;
  */
 class FixtureService
 {
-    private $loader;
-    private $autoload;
-    private $fixtures;
-    private $directories;
     private $kernel;
-    private $entityManager;
-    private $listener;
-    private $databaseFile;
-    private $backupDbFile;
-    private $useBackup;
-
+    private $fixtureExecutor;
+    private $objectManager;
     /**
      * @var ProxyReferenceRepository
      */
@@ -50,13 +36,25 @@ class FixtureService
      * @param \Symfony\Component\DependencyInjection\ContainerInterface $container Service container
      * @param \Symfony\Component\HttpKernel\Kernel                      $kernel    Application kernel
      */
-    public function __construct(ContainerInterface $container, Kernel $kernel)
+    public function __construct(ContainerInterface $container, Kernel $kernel, AbstractFixtureExecutor $executor)
     {
-        $this->autoload    = $container->getParameter('behat.doctrine_data_fixtures.autoload');
-        $this->fixtures    = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
-        $this->directories = $container->getParameter('behat.doctrine_data_fixtures.directories');
-        $this->useBackup   = $container->getParameter('behat.doctrine_data_fixtures.use_backup');
-        $this->kernel      = $kernel;
+        $autoload = $container->getParameter('behat.doctrine_data_fixtures.autoload');
+        $fixtureClasses = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
+
+        $this->docrtineKey = $container->getParameter('behat.doctrine_data_fixtures.doctrine_key');
+        $this->kernel = $kernel;
+        $this->fixtureExecutor = $executor;
+
+        $defaultDirectories = $container->getParameter('behat.doctrine_data_fixtures.directories');
+        $bundleDirectories = $autoload ? $this->getBundleFixtureDirectories() : array();
+
+        $this->fixtureExecutor->setFixtureDirectories(array_merge($defaultDirectories, $bundleDirectories));
+
+        if (is_array($fixtureClasses)) {
+            $this->fixtureExecutor->setFixtureClasses($fixtureClasses);
+        }
+
+        $this->init();
     }
 
     /**
@@ -74,12 +72,9 @@ class FixtureService
      */
     private function init()
     {
-        $this->listener = new PlatformListener();
+        $this->objectManager = $this->kernel->getContainer()->get($this->docrtineKey)->getManager();
 
-        $this->entityManager = $this->kernel->getContainer()->get('doctrine')->getManager();
-        $this->entityManager->getEventManager()->addEventSubscriber($this->listener);
-
-        $this->referenceRepository = new ProxyReferenceRepository($this->entityManager);
+        $this->referenceRepository = new ProxyReferenceRepository($this->objectManager);
     }
 
     /**
@@ -91,36 +86,9 @@ class FixtureService
     {
         $container = $this->kernel->getContainer();
 
-        $loader = class_exists('Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader')
-            ? new DataFixturesLoader($container)
-            : (class_exists('Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader')
-                ? new DoctrineFixturesLoader($container)
-                : new SymfonyFixturesLoader($container));
+        $loader = class_exists('Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader') ? new DataFixturesLoader($container) : (class_exists('Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader') ? new DoctrineFixturesLoader($container) : new SymfonyFixturesLoader($container));
 
         return $loader;
-    }
-
-    /**
-     * Calculate hash on data fixture class names, class file names and modification timestamps
-     *
-     * @param array $fixtures
-     *
-     * @return string
-     */
-    private function generateHash($fixtures)
-    {
-        $classNames = array_map('get_class', $fixtures);
-
-        foreach ($classNames as & $className) {
-            $class    = new \ReflectionClass($className);
-            $fileName = $class->getFileName();
-
-            $className .= ':' . $fileName . '@' . filemtime($fileName);
-        }
-
-        sort($classNames);
-
-        return sha1(serialize($classNames));
     }
 
     /**
@@ -130,190 +98,26 @@ class FixtureService
      */
     private function getBundleFixtureDirectories()
     {
-        return array_filter(array_map(function ($bundle) {
-            $path = $bundle->getPath() . '/DataFixtures/ORM';
+        $fixtureExecutor = $this->fixtureExecutor;
 
-            return is_dir($path) ? $path : null;
-        }, $this->kernel->getBundles()));
-    }
+        return array_filter(
+            array_map(
+                function ($bundle) use ($fixtureExecutor) {
+                    $path = $bundle->getPath() . $fixtureExecutor->getFixturesPath();
 
-    /**
-     * Fetch fixtures from directories
-     *
-     * @param array $directoryNames
-     */
-    private function fetchFixturesFromDirectories($directoryNames)
-    {
-        foreach ($directoryNames as $directoryName) {
-            $this->loader->loadFromDirectory($directoryName);
-        }
-    }
-
-    /**
-     * Load a data fixture class.
-     *
-     * @param string $className Class name
-     */
-    private function loadFixtureClass($className)
-    {
-        $fixture = new $className();
-
-        if ($this->loader->hasFixture($fixture)) {
-            unset($fixture);
-
-            return;
-        }
-
-        $this->loader->addFixture(new $className());
-
-        if ($fixture instanceof DependentFixtureInterface) {
-            foreach ($fixture->getDependencies() as $dependency) {
-                $this->loadFixtureClass($dependency);
-            }
-        }
-    }
-
-    /**
-     * Fetch fixtures from classes
-     *
-     * @param array $classNames
-     */
-    private function fetchFixturesFromClasses($classNames)
-    {
-        foreach ($classNames as $className) {
-            if (substr($className, 0, 1) !== '\\') {
-                $className = '\\' . $className;
-            }
-
-            if (! class_exists($className, false)) {
-                $this->loadFixtureClass($className);
-            }
-        }
-    }
-
-    /**
-     * Fetch fixtures
-     *
-     * @return array
-     */
-    private function fetchFixtures()
-    {
-        $this->loader = $this->getFixtureLoader();
-
-        $bundleDirectories = $this->autoload ? $this->getBundleFixtureDirectories() : array();
-
-        $this->fetchFixturesFromDirectories($bundleDirectories);
-        $this->fetchFixturesFromDirectories($this->directories ?: array());
-        $this->fetchFixturesFromClasses($this->fixtures ?: array());
-
-        return $this->loader->getFixtures();
-    }
-
-    /**
-     * Dispatch event
-     *
-     * @param \Doctrine\ORM\EntityManager $em    Entity manager
-     * @param string                      $event Event name
-     */
-    private function dispatchEvent($em, $event)
-    {
-        $eventArgs = new LifecycleEventArgs(null, $em);
-
-        $em->getEventManager()->dispatchEvent($event, $eventArgs);
+                    return is_dir($path) ? $path : null;
+                },
+                $this->kernel->getBundles()
+            )
+        );
     }
 
     /**
      * Load fixtures into database
      */
-    private function loadFixtures()
+    public function loadFixtures()
     {
-        $em = $this->entityManager;
-
-        $this->dispatchEvent($em, 'preTruncate');
-
-        $purger = new ORMPurger($em);
-        $purger->setPurgeMode(ORMPurger::PURGE_MODE_TRUNCATE);
-
-        $executor = new ORMExecutor($em, $purger);
-        $executor->setReferenceRepository($this->referenceRepository);
-        $executor->purge();
-        $executor->execute($this->fixtures, true);
-
-        $this->dispatchEvent($em, 'postTruncate');
-    }
-
-    /**
-     * Get path to .db file when using SqliteDriver
-     *
-     * @return string
-     */
-    private function getDatabaseFile()
-    {
-        $em = $this->entityManager;
-        $connection = $em->getConnection();
-
-        if ($connection->getDriver() instanceof SqliteDriver) {
-            $params = $connection->getParams();
-        }
-
-        return isset($params['path']) ? $params['path'] : null;
-    }
-
-    /**
-     * Create database
-     */
-    private function createDatabase($path)
-    {
-        $em = $this->entityManager;
-
-        $schemaTool = new SchemaTool($em);
-        $schemaTool->dropDatabase($path);
-        $schemaTool->createSchema($em->getMetadataFactory()->getAllMetadata());
-    }
-
-    /**
-     * Cache data fixtures
-     */
-    public function cacheFixtures()
-    {
-        $this->init();
-
-        $this->databaseFile = $this->getDatabaseFile();
-
-        if ($this->databaseFile && ! file_exists($this->databaseFile)) {
-            $this->createDatabase($this->databaseFile);
-        }
-
-        $this->fixtures = $this->fetchFixtures();
-
-        if ($this->databaseFile) {
-            $cacheDirectory = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
-            $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->fixtures) . '.db';
-        }
-    }
-
-    /**
-     * Reload data fixtures
-     */
-    public function reloadFixtures()
-    {
-        if (! $this->useBackup || ! $this->databaseFile) {
-            $this->loadFixtures();
-
-            return;
-        }
-
-        if (file_exists($this->backupDbFile)) {
-            copy($this->backupDbFile, $this->databaseFile);
-            $this->referenceRepository->load($this->backupDbFile);
-
-            return;
-        }
-
-        $this->loadFixtures();
-
-        copy($this->databaseFile, $this->backupDbFile);
-        $this->referenceRepository->save($this->backupDbFile);
+        $this->fixtureExecutor->loadFixtures($this->objectManager, $this->getReferenceRepository(), $this->getFixtureLoader());
     }
 
     /**
@@ -321,11 +125,11 @@ class FixtureService
      */
     public function flush()
     {
-        $em = $this->entityManager;
-        $em->flush();
-        $em->clear();
+        $objectManager = $this->objectManager;
+        $objectManager->flush();
+        $objectManager->clear();
 
-        $cacheDriver = $em->getMetadataFactory()->getCacheDriver();
+        $cacheDriver = $objectManager->getMetadataFactory()->getCacheDriver();
 
         if ($cacheDriver) {
             $cacheDriver->deleteAll();

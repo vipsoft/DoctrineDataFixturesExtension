@@ -15,7 +15,7 @@ use Doctrine\DBAL\Platforms\MySqlPlatform;
  *
  * @author Anthon Pang <apang@softwaredevelopment.ca>
  */
-class PlatformListener implements EventSubscriber
+class OrmListener implements EventSubscriber
 {
     /**
      * {@inheritdoc}
@@ -37,7 +37,6 @@ class PlatformListener implements EventSubscriber
     {
         $connection = $args->getObjectManager()->getConnection();
         $platform   = $connection->getDatabasePlatform();
-
         if ($platform instanceof MySqlPlatform) {
             $connection->exec('SET foreign_key_checks = 0;');
         }

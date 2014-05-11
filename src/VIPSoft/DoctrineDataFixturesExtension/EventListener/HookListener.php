@@ -67,8 +67,6 @@ class HookListener implements EventSubscriberInterface
      */
     public function beforeExercise(ExerciseCompleted $event)
     {
-        $this->fixtureService
-             ->cacheFixtures();
     }
 
     /**
@@ -82,8 +80,7 @@ class HookListener implements EventSubscriberInterface
             return;
         }
 
-        $this->fixtureService
-             ->reloadFixtures();
+        $this->fixtureService->loadFixtures();
     }
 
     /**
@@ -97,8 +94,7 @@ class HookListener implements EventSubscriberInterface
             return;
         }
 
-        $this->fixtureService
-             ->flush();
+        $this->fixtureService->flush();
     }
 
     /**
@@ -112,8 +108,7 @@ class HookListener implements EventSubscriberInterface
             return;
         }
 
-        $this->fixtureService
-             ->reloadFixtures();
+        $this->fixtureService->loadFixtures();
     }
 
     /**
@@ -127,7 +122,6 @@ class HookListener implements EventSubscriberInterface
             return;
         }
 
-        $this->fixtureService
-             ->flush();
+        $this->fixtureService->flush();
     }
 }
