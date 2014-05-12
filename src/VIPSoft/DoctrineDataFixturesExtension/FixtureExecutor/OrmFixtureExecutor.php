@@ -23,7 +23,6 @@ class OrmFixtureExecutor extends AbstractFixtureExecutor
     private static $inited = false;
 
     /**
-     * 
      * @param \VIPSoft\DoctrineDataFixturesExtension\EventListener\OrmListener $ormListener
      */
     public function __construct(OrmListener $ormListener)
@@ -32,7 +31,6 @@ class OrmFixtureExecutor extends AbstractFixtureExecutor
     }
 
     /**
-     * 
      * @return \VIPSoft\DoctrineDataFixturesExtension\EventListener\OrmListener
      */
     public function getPlatformListener()
@@ -41,7 +39,6 @@ class OrmFixtureExecutor extends AbstractFixtureExecutor
     }
 
     /**
-     * 
      * @return string
      */
     public function getFixturesPath()
@@ -50,7 +47,6 @@ class OrmFixtureExecutor extends AbstractFixtureExecutor
     }
 
     /**
-     * 
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param \Doctrine\Common\DataFixtures\ProxyReferenceRepository $referenceRepository
      * @param mixed $loader
@@ -63,7 +59,6 @@ class OrmFixtureExecutor extends AbstractFixtureExecutor
     }
 
     /**
-     * 
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param \Doctrine\Common\DataFixtures\ProxyReferenceRepository $referenceRepository
      * @param array $fixtures
@@ -83,14 +78,13 @@ class OrmFixtureExecutor extends AbstractFixtureExecutor
     }
 
     /**
-     * 
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @return boolean
      */
     private function initListener(ObjectManager $objectManager)
     {
         if (self::$inited) {
-            return false;
+            return;
         }
 
         $objectManager->getEventManager()->addEventSubscriber($this->getPlatformListener());

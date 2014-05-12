@@ -13,7 +13,6 @@ class OrmFixtureExecutorSpec extends ObjectBehavior
     }
 
     /**
-     * 
      * @param \VIPSoft\DoctrineDataFixturesExtension\EventListener\OrmListener $listener
      */
     function let($listener)
