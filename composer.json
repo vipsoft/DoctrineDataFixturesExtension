@@ -14,12 +14,14 @@
     ],
     "require": {
         "php": ">=5.3.6",
-        "behat/behat": "3.0.x-dev",
+        "behat/behat": "~3.0.6",
         "behat/symfony2-extension": "2.0.x-dev",
         "doctrine/data-fixtures": "~1.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "3.7.*"
+        "phpspec/phpspec": "2.1.x-dev",
+        "doctrine/orm": "~2.2,>=2.2.3",
+        "doctrine/doctrine-bundle": "~1.2"
     },
     "autoload": {
         "psr-0": { "VIPSoft\\DoctrineDataFixturesExtension": "src/" }
@@ -27,8 +29,11 @@
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "3.0.x-dev",
+            "dev-master": "~3.0.6",
             "dev-2.5": "2.5.x-dev"
         }
+    },
+    "config": {
+        "bin-dir": "bin"
     }
 }

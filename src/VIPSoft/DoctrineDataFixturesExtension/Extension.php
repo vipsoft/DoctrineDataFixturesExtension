@@ -40,6 +40,7 @@ class Extension implements ExtensionInterface
      */
     public function configure(ArrayNodeDefinition $builder)
     {
+        $supportedDrivers = array('orm', 'mongodb');
         $builder
             ->addDefaultsIfNotSet()
             ->children()
@@ -59,8 +60,12 @@ class Extension implements ExtensionInterface
                         ->thenInvalid('Invalid fixtures lifetime "%s"')
                     ->end()
                 ->end()
-                ->scalarNode('use_backup')
-                    ->defaultValue(true)
+                ->scalarNode('db_driver')
+                    ->validate()
+                        ->ifNotInArray($supportedDrivers)
+                        ->thenInvalid('The driver %s is not supported. Please choose one of '.json_encode($supportedDrivers))
+                    ->end()
+                    ->defaultValue('orm')
                 ->end()
             ->end();
     }
@@ -72,6 +77,7 @@ class Extension implements ExtensionInterface
     {
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/Resources/config'));
         $loader->load('services.xml');
+        $loader->load($config['db_driver'].'.xml');
 
         if (isset($config['autoload'])) {
             $container->setParameter('behat.doctrine_data_fixtures.autoload', $config['autoload']);
