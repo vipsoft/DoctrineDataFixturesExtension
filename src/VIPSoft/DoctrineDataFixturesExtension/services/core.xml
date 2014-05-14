@@ -6,9 +6,35 @@
     <parameters>
         <parameter key="behat.doctrine_data_fixtures.service.hook_listener.class">VIPSoft\DoctrineDataFixturesExtension\EventListener\HookListener</parameter>
         <parameter key="behat.doctrine_data_fixtures.service.fixture_loader.class">VIPSoft\DoctrineDataFixturesExtension\Service\FixtureService</parameter>
+        <parameter key="behat.doctrine_data_fixtures.service.backup.class">VIPSoft\DoctrineDataFixturesExtension\Service\BackupService</parameter>
+        <parameter key="behat.doctrine_data_fixtures.service.backup_mysql.class">VIPSoft\DoctrineDataFixturesExtension\Service\Backup\MysqlDumpBackup</parameter>
+        <parameter key="behat.doctrine_data_fixtures.service.backup_sqlite.class">VIPSoft\DoctrineDataFixturesExtension\Service\Backup\SqliteCopyBackup</parameter>
+        <parameter key="behat.doctrine_data_fixtures.service.backup_mysql.mysql_bin">mysql</parameter>
+        <parameter key="behat.doctrine_data_fixtures.service.backup_mysql.mysqldump_bin">mysqldump</parameter>
     </parameters>
 
     <services>
+
+        <service id="behat.doctrine_data_fixtures.service.backup_mysql" class="%behat.doctrine_data_fixtures.service.backup_mysql.class%">
+            <call method="setMysqlBin">
+                <argument>%behat.doctrine_data_fixtures.service.backup_mysql.mysql_bin%</argument>
+            </call>
+            <call method="setMysqldumpBin">
+                <argument>%behat.doctrine_data_fixtures.service.backup_mysql.mysqldump_bin%</argument>
+            </call>
+        </service>
+
+        <service id="behat.doctrine_data_fixtures.service.backup_sqlite" class="%behat.doctrine_data_fixtures.service.backup_sqlite.class%"/>
+
+        <service id="behat.doctrine_data_fixtures.service.backup" class="%behat.doctrine_data_fixtures.service.backup.class%">
+            <call method="getPlatformBackupMap">
+                <argument type="collection">
+                    <argument key="sqlite" type="service" id="behat.doctrine_data_fixtures.service.backup_sqlite"/>
+                    <argument key="mysql" type="service" id="behat.doctrine_data_fixtures.service.backup_mysql"/>
+                </argument>
+            </call>
+        </service>
+
         <service id="behat.doctrine_data_fixtures.service.hook_listener" class="%behat.doctrine_data_fixtures.service.hook_listener.class%">
             <argument>%behat.doctrine_data_fixtures.lifetime%</argument>
             <call method="setFixtureService">
