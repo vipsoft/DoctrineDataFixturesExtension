@@ -27,7 +27,7 @@
         <service id="behat.doctrine_data_fixtures.service.backup_sqlite" class="%behat.doctrine_data_fixtures.service.backup_sqlite.class%"/>
 
         <service id="behat.doctrine_data_fixtures.service.backup" class="%behat.doctrine_data_fixtures.service.backup.class%">
-            <call method="getPlatformBackupMap">
+            <call method="setPlatformBackupMap">
                 <argument type="collection">
                     <argument key="sqlite" type="service" id="behat.doctrine_data_fixtures.service.backup_sqlite"/>
                     <argument key="mysql" type="service" id="behat.doctrine_data_fixtures.service.backup_mysql"/>

@@ -50,13 +50,6 @@ class BackupService
      */
     public function getPlatformBackupMap()
     {
-        if ($this->platformBackupMap === null) {
-            $this->platformBackupMap = array(
-                'mysql'  => new Backup\MysqlDumpBackup(),
-                'sqlite' => new Backup\SqliteCopyBackup()
-            );
-        }
-
         return $this->platformBackupMap;
     }
 
