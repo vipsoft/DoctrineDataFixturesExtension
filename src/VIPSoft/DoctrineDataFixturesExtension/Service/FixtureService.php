@@ -10,9 +10,7 @@ use Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader as DoctrineFixture
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
-use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\DBAL\Migrations\Configuration\Configuration;
 use Doctrine\DBAL\Migrations\Migration;
 use Doctrine\DBAL\Migrations\OutputWriter;
@@ -38,9 +36,8 @@ class FixtureService
     private $kernel;
     private $entityManager;
     private $listener;
-    private $databaseFile;
-    private $backupDbFile;
     private $useBackup;
+    private $backupService;
 
     /**
      * @var \Doctrine\Common\DataFixtures\ReferenceRepository
@@ -61,6 +58,11 @@ class FixtureService
         $this->migrations  = $container->getParameter('behat.doctrine_data_fixtures.migrations');
         $this->useBackup   = $container->getParameter('behat.doctrine_data_fixtures.use_backup');
         $this->kernel      = $kernel;
+
+        if ($this->useBackup != null) {
+            $this->backupService = $container->get('behat.doctrine_data_fixtures.service.backup');
+            $this->backupService->setCacheDir($this->kernel->getContainer()->getParameter('kernel.cache_dir'));
+        }
     }
 
     /**
@@ -78,9 +80,9 @@ class FixtureService
      */
     private function init()
     {
-        $this->listener = new PlatformListener();
-
+        $this->listener      = new PlatformListener();
         $this->entityManager = $this->kernel->getContainer()->get('doctrine')->getManager();
+
         $this->entityManager->getEventManager()->addEventSubscriber($this->listener);
     }
 
@@ -100,6 +102,11 @@ class FixtureService
                 : new SymfonyFixturesLoader($container));
 
         return $loader;
+    }
+
+    private function getHash()
+    {
+        return $this->generateHash($this->migrations ?: array(), $this->fixtures);
     }
 
     /**
@@ -296,7 +303,7 @@ class FixtureService
 
         $executor = new ORMExecutor($em, $purger);
 
-        if ( ! $this->databaseFile) {
+        if ( ! $this->useBackup) {
             $executor->purge();
         }
 
@@ -317,7 +324,7 @@ class FixtureService
         $connection   = $this->entityManager->getConnection();
         $container    = $this->kernel->getContainer();
         $outputWriter = new OutputWriter(function () {});
-
+        
         $namespace    = $container->getParameter('doctrine_migrations.namespace');
         if ($namespace) {
             $directory = $container->getParameter('doctrine_migrations.dir_name');
@@ -341,38 +348,15 @@ class FixtureService
     }
 
     /**
-     * Get path to .db file when using SqliteDriver
-     *
-     * @return string
+     * Create database using doctrine schema tool
      */
-    private function getDatabaseFile()
+    private function createDatabase()
     {
-        $em = $this->entityManager;
-        $connection = $em->getConnection();
-
-        if ($connection->getDriver() instanceof SqliteDriver) {
-            $params = $connection->getParams();
-        }
-
-        return isset($params['path']) ? $params['path'] : null;
-    }
-
-    /**
-     * Create database
-     *
-     * @param string  $path
-     * @param boolean $create
-     */
-    private function createDatabase($path, $create = true)
-    {
-        $em = $this->entityManager;
-
+        $em         = $this->entityManager;
         $schemaTool = new SchemaTool($em);
 
-        if ($create) {
-            $schemaTool->dropDatabase($path);
-            $schemaTool->createSchema($em->getMetadataFactory()->getAllMetadata());
-        }
+        $schemaTool->dropDatabase();
+        $schemaTool->createSchema($em->getMetadataFactory()->getAllMetadata());
     }
 
     /**
@@ -384,14 +368,38 @@ class FixtureService
 
         $this->migrations   = $this->fetchMigrations();
         $this->fixtures     = $this->fetchFixtures();
-        $this->databaseFile = $this->getDatabaseFile();
+    }
 
-        if ( ! $this->databaseFile) {
-            return;
-        }
+    /**
+     * Check if there is a backup
+     *
+     * @return void
+     */
+    private function hasBackup()
+    {
+        return $this->backupService->hasBackup($this->getHash());
+    }
 
-        $cacheDirectory     = $this->kernel->getContainer()->getParameter('kernel.cache_dir');
-        $this->backupDbFile = $cacheDirectory . '/test_' . $this->generateHash($this->migrations ?: array(), $this->fixtures) . '.db';
+    /**
+     * Create a backup for the current fixtures / migrations
+     */
+    private function createBackup()
+    {
+        $hash       = $this->getHash();
+        $connection = $this->entityManager->getConnection();
+
+        $this->backupService->createBackup($connection, $hash);
+    }
+
+    /**
+     * Restore a backup for the current fixtures / migrations
+     */
+    private function restoreBackup()
+    {
+        $hash       = $this->getHash();
+        $connection = $this->entityManager->getConnection();
+
+        $this->backupService->restoreBackup($connection, $hash);
     }
 
     /**
@@ -399,22 +407,24 @@ class FixtureService
      */
     public function reloadFixtures()
     {
-        if ( ! $this->useBackup || ! $this->databaseFile) {
+        if ( ! $this->useBackup) {
             $this->loadFixtures();
 
             return;
         }
 
-        if (file_exists($this->backupDbFile)) {
-            copy($this->backupDbFile, $this->databaseFile);
+        if ($this->hasBackup()) {
+            $this->restoreBackup();
 
             return;
         }
 
-        $this->createDatabase($this->databaseFile, ! isset($this->migrations));
-        $this->loadFixtures();
+        if ($this->migrations === null) {
+            $this->createDatabase();
+        }
 
-        copy($this->databaseFile, $this->backupDbFile);
+        $this->loadFixtures();
+        $this->createBackup();
     }
 
     /**
