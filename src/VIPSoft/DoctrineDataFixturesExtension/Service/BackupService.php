@@ -108,11 +108,11 @@ class BackupService
      */
     public function createBackup(Connection $connection, $hash)
     {
-        $platform       = $connection->getDatabasePlatform();
-        $filename       = $this->getBackupFile($hash);
-        $database       = $connection->getDatabase();
-        $params         = $connection->getParams();
-        $platformName   = $platform->getName();
+        $platform     = $connection->getDatabasePlatform();
+        $filename     = $this->getBackupFile($hash);
+        $database     = $connection->getDatabase();
+        $params       = $connection->getParams();
+        $platformName = $platform->getName();
 
         $this->getPlatformBackup($platformName)->create($database, $filename, $params);
     }
@@ -125,11 +125,11 @@ class BackupService
      */
     public function restoreBackup(Connection $connection, $hash)
     {
-        $platform       = $connection->getDatabasePlatform();
-        $filename       = $this->getBackupFile($hash);
-        $database       = $connection->getDatabase();
-        $params         = $connection->getParams();
-        $platformName   = $platform->getName();
+        $platform     = $connection->getDatabasePlatform();
+        $filename     = $this->getBackupFile($hash);
+        $database     = $connection->getDatabase();
+        $params       = $connection->getParams();
+        $platformName = $platform->getName();
 
         $this->getPlatformBackup($platformName)->restore($database, $filename, $params);
     }
