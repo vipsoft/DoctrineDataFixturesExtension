@@ -352,11 +352,20 @@ class FixtureService
      */
     private function createDatabase()
     {
-        $em         = $this->entityManager;
-        $schemaTool = new SchemaTool($em);
+        $em       = $this->entityManager;
+        $metadata = $em->getMetadataFactory()->getAllMetadata();
 
+        $schemaTool = new SchemaTool($em);
+        $schemaTool->createSchema($metadata);
+    }
+
+    /**
+     * Drop database using doctrine schema tool
+     */
+    private function dropDatabase()
+    {
+        $schemaTool = new SchemaTool($this->entityManager);
         $schemaTool->dropDatabase();
-        $schemaTool->createSchema($em->getMetadataFactory()->getAllMetadata());
     }
 
     /**
@@ -366,8 +375,12 @@ class FixtureService
     {
         $this->init();
 
-        $this->migrations   = $this->fetchMigrations();
-        $this->fixtures     = $this->fetchFixtures();
+        $this->migrations = $this->fetchMigrations();
+        $this->fixtures   = $this->fetchFixtures();
+
+        if ( ! $this->hasBackup()) {
+            $this->dropDatabase();
+        }
     }
 
     /**
@@ -420,6 +433,7 @@ class FixtureService
         }
 
         if ($this->migrations === null) {
+            $this->dropDatabase();
             $this->createDatabase();
         }
 
