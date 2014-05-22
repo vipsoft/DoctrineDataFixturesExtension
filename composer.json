@@ -24,6 +24,9 @@
         "doctrine/orm": "~2.2,>=2.2.3",
         "doctrine/doctrine-bundle": "~1.2"
     },
+    "suggest": {
+        "doctrine/migrations": "Uses DBAL to load versioned database schema and migration classes"
+    },
     "autoload": {
         "psr-0": { "VIPSoft\\DoctrineDataFixturesExtension": "src/" }
     },

@@ -327,6 +327,10 @@ class FixtureService
      */
     private function runMigrations()
     {
+        if ( ! isset($this->migrations)) {
+            return;
+        }
+
         $connection   = $this->entityManager->getConnection();
         $container    = $this->kernel->getContainer();
         $outputWriter = new OutputWriter(function () {});
