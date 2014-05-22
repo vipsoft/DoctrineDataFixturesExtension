@@ -73,6 +73,10 @@ class FixtureService
      */
     public function getReferenceRepository()
     {
+        if ( ! $this->referenceRepository) {
+            $this->referenceRepository = new ProxyReferenceRepository($this->entityManager);
+        }
+
         return $this->referenceRepository;
     }
 
@@ -84,9 +88,8 @@ class FixtureService
         $this->listener      = new PlatformListener();
         $this->entityManager = $this->kernel->getContainer()->get('doctrine')->getManager();
 
-        $this->entityManager->getEventManager()->addEventSubscriber($this->listener);
-
-        $this->referenceRepository = new ProxyReferenceRepository($this->entityManager);
+        $this->entityManager->getEventManager()
+                            ->addEventSubscriber($this->listener);
     }
 
     /**
@@ -289,7 +292,8 @@ class FixtureService
     {
         $eventArgs = new LifecycleEventArgs(null, $em);
 
-        $em->getEventManager()->dispatchEvent($event, $eventArgs);
+        $em->getEventManager()
+           ->dispatchEvent($event, $eventArgs);
     }
 
     /**
@@ -305,7 +309,7 @@ class FixtureService
         $purger->setPurgeMode(ORMPurger::PURGE_MODE_TRUNCATE);
 
         $executor = new ORMExecutor($em, $purger);
-        $executor->setReferenceRepository($this->referenceRepository);
+        $executor->setReferenceRepository($this->getReferenceRepository());
 
         if ( ! $this->useBackup) {
             $executor->purge();
@@ -440,7 +444,9 @@ class FixtureService
 
         if ($this->hasBackup()) {
             $this->restoreBackup();
-            $this->referenceRepository->load($this->getBackupFile());
+
+            $this->getReferenceRepository()
+                 ->load($this->getBackupFile());
 
             return;
         }
@@ -452,7 +458,9 @@ class FixtureService
 
         $this->loadFixtures();
         $this->createBackup();
-        $this->referenceRepository->save($this->getBackupFile());
+
+        $this->getReferenceRepository()
+             ->save($this->getBackupFile());
     }
 
     /**
@@ -463,6 +471,8 @@ class FixtureService
         $em = $this->entityManager;
         $em->flush();
         $em->clear();
+
+        $this->referenceRepository = null;
 
         $cacheDriver = $em->getMetadataFactory()->getCacheDriver();
 
