@@ -35,7 +35,7 @@ class SqliteCopyBackup implements BackupInterface
      */
     public function copy($source, $dest)
     {
-        if ( ! copy($source, $target)) {
+        if ( ! copy($source, $dest)) {
             throw new \RuntimeException("Unable to copy '$source' to '$dest'");
         }
     }
