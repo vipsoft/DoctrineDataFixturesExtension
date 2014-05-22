@@ -20,6 +20,12 @@
         "symfony/dependency-injection": ">=2.0.0,<3.0-dev",
         "doctrine/data-fixtures": "~1.0"
     },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*"
+    },
+    "suggest": {
+        "doctrine/migrations": "Uses DBAL to load versioned database schema and migration classes"
+    },
     "autoload": {
         "psr-0": { "VIPSoft\\DoctrineDataFixturesExtension": "src/" }
     },
