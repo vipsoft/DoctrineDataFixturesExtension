@@ -8,7 +8,7 @@ namespace VIPSoft;
 
 /**
  * Generic autoloader
- * 
+ *
  * @author Anthon Pang <apang@softwaredevelopment.ca>
  */
 class Bootstrap

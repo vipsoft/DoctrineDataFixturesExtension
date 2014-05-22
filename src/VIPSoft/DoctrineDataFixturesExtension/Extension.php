@@ -38,6 +38,38 @@ class Extension implements ExtensionInterface
     /**
      * {@inheritdoc}
      */
+    public function load(ContainerBuilder $container, array $config)
+    {
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/Resources/config'));
+        $loader->load('services.xml');
+
+        if (isset($config['autoload'])) {
+            $container->setParameter('behat.doctrine_data_fixtures.autoload', $config['autoload']);
+        }
+
+        if (isset($config['migrations'])) {
+            $container->setParameter('behat.doctrine_data_fixtures.migrations', $config['migrations']);
+        }
+
+        if (isset($config['directories'])) {
+            $container->setParameter('behat.doctrine_data_fixtures.directories', $config['directories']);
+        }
+
+        if (isset($config['fixtures'])) {
+            $container->setParameter('behat.doctrine_data_fixtures.fixtures', $config['fixtures']);
+        }
+
+        $container->setParameter(
+            'behat.doctrine_data_fixtures.use_backup',
+            isset($config['use_backup']) ? $config['use_backup'] : true
+        );
+
+        $container->setParameter('behat.doctrine_data_fixtures.lifetime', $config['lifetime']);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function configure(ArrayNodeDefinition $builder)
     {
         $builder
@@ -45,6 +77,9 @@ class Extension implements ExtensionInterface
             ->children()
                 ->scalarNode('autoload')
                     ->defaultValue(true)
+                ->end()
+                ->arrayNode('migrations')
+                    ->prototype('scalar')->end()
                 ->end()
                 ->arrayNode('directories')
                     ->prototype('scalar')->end()
@@ -63,34 +98,6 @@ class Extension implements ExtensionInterface
                     ->defaultValue(true)
                 ->end()
             ->end();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function load(ContainerBuilder $container, array $config)
-    {
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/Resources/config'));
-        $loader->load('services.xml');
-
-        if (isset($config['autoload'])) {
-            $container->setParameter('behat.doctrine_data_fixtures.autoload', $config['autoload']);
-        }
-
-        if (isset($config['directories'])) {
-            $container->setParameter('behat.doctrine_data_fixtures.directories', $config['directories']);
-        }
-
-        if (isset($config['fixtures'])) {
-            $container->setParameter('behat.doctrine_data_fixtures.fixtures', $config['fixtures']);
-        }
-
-        $container->setParameter(
-            'behat.doctrine_data_fixtures.use_backup',
-            isset($config['use_backup']) ? $config['use_backup'] : true
-        );
-
-        $container->setParameter('behat.doctrine_data_fixtures.lifetime', $config['lifetime']);
     }
 
     /**
