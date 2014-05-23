@@ -331,13 +331,16 @@ class FixtureService
             return;
         }
 
-        $connection   = $this->entityManager->getConnection();
-        $container    = $this->kernel->getContainer();
-        $outputWriter = new OutputWriter(function () {});
+        $connection = $this->entityManager->getConnection();
+        $container  = $this->kernel->getContainer();
+        $namespace  = $container->getParameter('doctrine_migrations.namespace');
 
-        $namespace    = $container->getParameter('doctrine_migrations.namespace');
         if ($namespace) {
-            $directory = $container->getParameter('doctrine_migrations.dir_name');
+            $directory    = $container->getParameter('doctrine_migrations.dir_name');
+            $outputWriter = new OutputWriter(
+                function () {
+                }
+            );
 
             $configuration = new Configuration($connection, $outputWriter);
             $configuration->setMigrationsNamespace($namespace);

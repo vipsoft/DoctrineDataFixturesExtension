@@ -18,6 +18,7 @@ interface BackupInterface
      *
      * @param string $database
      * @param string $file
+     * @param array  $params
      */
     public function create($database, $file, array $params);
 
@@ -26,6 +27,7 @@ interface BackupInterface
      *
      * @param string $database
      * @param string $file
+     * @param array  $params
      */
     public function restore($database, $file, array $params);
 }

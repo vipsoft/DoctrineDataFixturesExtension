@@ -55,7 +55,7 @@ class BackupService
 
     /**
      * @param string                                                                $platformName
-     * @param VIPSoft\DoctrineDataFixturesExtension\Service\Backup\BackupInterface  $backup
+     * @param \VIPSoft\DoctrineDataFixturesExtension\Service\Backup\BackupInterface $backup
      */
     public function setPlatformBackup($platformName, BackupInterface $backup)
     {
