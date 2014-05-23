@@ -327,9 +327,13 @@ class FixtureService
 
         $connection   = $this->entityManager->getConnection();
         $container    = $this->kernel->getContainer();
-        $outputWriter = new OutputWriter(function () {});
-        
-        $namespace    = $container->getParameter('doctrine_migrations.namespace');
+        $outputWriter = new OutputWriter(
+            function () {
+            }
+        );
+
+        $namespace = $container->getParameter('doctrine_migrations.namespace');
+
         if ($namespace) {
             $directory = $container->getParameter('doctrine_migrations.dir_name');
 

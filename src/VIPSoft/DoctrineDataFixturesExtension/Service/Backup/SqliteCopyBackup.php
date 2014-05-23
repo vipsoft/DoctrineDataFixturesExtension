@@ -16,6 +16,8 @@ class SqliteCopyBackup implements BackupInterface
     /**
      * Get path to .db file
      *
+     * @param array $params
+     *
      * @return string
      */
     private function getDatabaseFile(array $params)
@@ -30,8 +32,8 @@ class SqliteCopyBackup implements BackupInterface
     /**
      * Makes a copy of the file source to dest.
      *
-     * @param $source string
-     * @param $target string
+     * @param string $source
+     * @param string $dest
      */
     public function copy($source, $dest)
     {
