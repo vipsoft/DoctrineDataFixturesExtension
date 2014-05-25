@@ -49,13 +49,13 @@ class OrmFixtureExecutor extends AbstractFixtureExecutor
     /**
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param \Doctrine\Common\DataFixtures\ProxyReferenceRepository $referenceRepository
-     * @param mixed $loader
+     * @param array $fixtures
      */
-    public function loadFixtures(ObjectManager $objectManager, ProxyReferenceRepository $referenceRepository, $loader)
+    public function loadFixtures(ObjectManager $objectManager, ProxyReferenceRepository $referenceRepository, array $fixtures)
     {
         $this->initListener($objectManager);
 
-        parent::loadFixtures($objectManager, $referenceRepository, $loader);
+        parent::loadFixtures($objectManager, $referenceRepository, $fixtures);
     }
 
     /**

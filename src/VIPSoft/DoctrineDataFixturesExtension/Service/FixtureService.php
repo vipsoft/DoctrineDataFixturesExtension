@@ -11,7 +11,6 @@ use Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader as DoctrineFixture
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoader;
 use Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader as SymfonyFixturesLoader;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use VIPSoft\DoctrineDataFixturesExtension\FixtureExecutor\AbstractFixtureExecutor;
 
@@ -30,32 +29,30 @@ class FixtureService
     private $fixtureClasses = array();
 
     /**
-     * @var ProxyReferenceRepository
+     * @var \Doctrine\Common\DataFixtures\ProxyReferenceRepository
      */
     private $referenceRepository;
 
     /**
-     * Constructor
-     *
-     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container Service container
-     * @param \Symfony\Component\HttpKernel\Kernel                      $kernel    Application kernel
+     * 
+     * @param \Symfony\Component\HttpKernel\Kernel $kernel
+     * @param \VIPSoft\DoctrineDataFixturesExtension\FixtureExecutor\AbstractFixtureExecutor $executor
+     * @param array $options
      */
-    public function __construct(ContainerInterface $container, Kernel $kernel, AbstractFixtureExecutor $executor)
+    public function __construct(Kernel $kernel, AbstractFixtureExecutor $executor, array $options)
     {
         $this->kernel = $kernel;
         $this->fixtureExecutor = $executor;
 
-        $autoload = $container->getParameter('behat.doctrine_data_fixtures.autoload');
-        $bundleDirectories = $autoload ? $this->getBundleFixtureDirectories() : array();
-        $directories = $container->getParameter('behat.doctrine_data_fixtures.directories');
+        $bundleDirectories = $options['autoload'] ? $this->getBundleFixtureDirectories() : array();
+
+        $directories = $options['directories'];
         $defaultDirectories = is_array($directories) ? $directories : array(); 
 
         $this->fixtureDirectories = array_merge($defaultDirectories, $bundleDirectories);
-        $this->fixtureClasses = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
+        $this->fixtureClasses = $options['fixtures'];
 
-        $doctrineKey = $container->getParameter('behat.doctrine_data_fixtures.doctrine_key');
-        $this->objectManager = $this->kernel->getContainer()->get($doctrineKey)->getManager();
-
+        $this->objectManager = $this->kernel->getContainer()->get($options['model_manager_id']);
         $this->referenceRepository = new ProxyReferenceRepository($this->objectManager);
     }
 
@@ -118,6 +115,15 @@ class FixtureService
         }
     }
 
+    /**
+     * 
+     * @return \Doctrine\Common\DataFixtures\ProxyReferenceRepository
+     */
+    public function getReferenceRepository()
+    {
+        return $this->referenceRepository;
+    }
+        
     /**
      * Fetch fixtures from classes
      *

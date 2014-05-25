@@ -12,6 +12,8 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Doctrine data fixtures extension for Behat class.
@@ -41,33 +43,35 @@ class Extension implements ExtensionInterface
     public function configure(ArrayNodeDefinition $builder)
     {
         $supportedDrivers = array('orm', 'mongodb');
+
         $builder
-            ->addDefaultsIfNotSet()
-            ->children()
-                ->scalarNode('autoload')
-                    ->defaultValue(true)
-                ->end()
-                ->arrayNode('directories')
-                    ->prototype('scalar')->end()
-                ->end()
-                ->arrayNode('fixtures')
-                    ->prototype('scalar')->end()
-                ->end()
-                ->scalarNode('lifetime')
-                    ->defaultValue('feature')
-                    ->validate()
-                        ->ifNotInArray(array('feature', 'scenario'))
-                        ->thenInvalid('Invalid fixtures lifetime "%s"')
+            ->requiresAtLeastOneElement()
+            ->validate()
+                ->ifTrue(function($config) use ($supportedDrivers) {
+                    return count(array_diff(array_keys($config), $supportedDrivers)) > 0;
+                })
+                ->thenInvalid('Unknown behat fixture drivers. Available '.json_encode($supportedDrivers))
+            ->end()
+            ->prototype('array')
+                ->children()
+                    ->scalarNode('autoload')
+                        ->defaultValue(true)
+                    ->end()
+                    ->arrayNode('directories')
+                        ->prototype('scalar')->end()
+                    ->end()
+                    ->arrayNode('fixtures')
+                        ->prototype('scalar')->end()
+                    ->end()
+                    ->scalarNode('lifetime')
+                        ->defaultValue('feature')
+                        ->validate()
+                            ->ifNotInArray(array('feature', 'scenario'))
+                            ->thenInvalid('Invalid fixtures lifetime "%s"')
+                        ->end()
                     ->end()
                 ->end()
-                ->scalarNode('db_driver')
-                    ->validate()
-                        ->ifNotInArray($supportedDrivers)
-                        ->thenInvalid('The driver %s is not supported. Please choose one of '.json_encode($supportedDrivers))
-                    ->end()
-                    ->defaultValue('orm')
-                ->end()
-            ->end();
+            ;
     }
 
     /**
@@ -77,26 +81,14 @@ class Extension implements ExtensionInterface
     {
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/Resources/config'));
         $loader->load('services.xml');
-        $loader->load($config['db_driver'].'.xml');
 
-        if (isset($config['autoload'])) {
-            $container->setParameter('behat.doctrine_data_fixtures.autoload', $config['autoload']);
+        foreach ($config as $dbDriver => $driverOptions) {
+            if (!array_key_exists('model_manager_id', $driverOptions)) {
+                $driverOptions['model_manager_id'] = $container->getParameter('behat.doctrine_data_fixtures.model_manager_id.'.$dbDriver);
+            }
+
+            $this->createDriverServices($container, $dbDriver, $driverOptions);
         }
-
-        if (isset($config['directories'])) {
-            $container->setParameter('behat.doctrine_data_fixtures.directories', $config['directories']);
-        }
-
-        if (isset($config['fixtures'])) {
-            $container->setParameter('behat.doctrine_data_fixtures.fixtures', $config['fixtures']);
-        }
-
-        $container->setParameter(
-            'behat.doctrine_data_fixtures.use_backup',
-            isset($config['use_backup']) ? $config['use_backup'] : true
-        );
-
-        $container->setParameter('behat.doctrine_data_fixtures.lifetime', $config['lifetime']);
     }
 
     /**
@@ -104,5 +96,51 @@ class Extension implements ExtensionInterface
      */
     public function process(ContainerBuilder $container)
     {
+    }
+
+    /**
+     * 
+     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
+     * @param string $dbDriver
+     * @param array $options
+     */
+    private function createDriverServices(ContainerBuilder $container, $dbDriver, array $options)
+    {
+        $loaderDefinition = new Definition(
+            $container->getParameter('behat.doctrine_data_fixtures.service.fixture_loader.class'),
+            array(
+                new Reference('symfony2_extension.kernel'),
+                new Reference('behat.doctrine_data_fixtures.fixtures_executor.'.$dbDriver),
+                $options
+            )
+        );
+
+        $loaderReferenceName = 'behat.doctrine_data_fixtures.fixture_loader.' . $dbDriver;
+        $container->setDefinition($loaderReferenceName, $loaderDefinition);
+
+        $contextInitializerDefinition = new Definition(
+            $container->getParameter('behat.doctrine_data_fixtures.initializer.fixture_service_aware.class'),
+            array(
+                new Reference($loaderReferenceName)
+            )
+        );
+        $contextInitializerDefinition->addTag('context.initializer');
+        $container->setDefinition(
+            'behat.doctrine_data_fixtures.initializer.fixture_service_aware.'.$dbDriver,
+            $contextInitializerDefinition
+        );
+
+        $listenerDefinition = new Definition(
+            $container->getParameter('behat.doctrine_data_fixtures.service.hook_listener.class'),
+            array(
+                new Reference($loaderReferenceName),
+                $options['lifetime']
+            )
+        );
+        $listenerDefinition->addTag('event_dispatcher.subscriber');
+        $container->setDefinition(
+            'behat.doctrine_data_fixtures.service.'.$dbDriver.'.hook_listener',
+            $listenerDefinition
+        );
     }
 }
