@@ -112,22 +112,24 @@ class FixtureService
 
     private function getHash()
     {
-        return $this->generateHash($this->migrations ?: array(), $this->fixtures);
+        return $this->generateHash($this->migrations, $this->fixtures);
     }
 
     /**
      * Calculate hash on data fixture class names, class file names and modification timestamps
      *
-     * @param array $migrations
-     * @param array $fixtures
+     * @param array|null $migrations
+     * @param array      $fixtures
      *
      * @return string
      */
     private function generateHash($migrations, $fixtures)
     {
-        array_walk($migrations, function (& $migration) {
-            $migration .= '@' . filemtime($migration);
-        });
+        if ($migrations) {
+            array_walk($migrations, function (& $migration) {
+                $migration .= '@' . filemtime($migration);
+            });
+        }
 
         $classNames = array_map('get_class', $fixtures);
 
