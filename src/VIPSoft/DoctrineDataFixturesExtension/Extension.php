@@ -47,6 +47,7 @@ class Extension implements ExtensionInterface
                     ->defaultValue(true)
                 ->end()
                 ->variableNode('migrations')
+                    ->defaultNull()
                 ->end()
                 ->arrayNode('directories')
                     ->prototype('scalar')->end()
@@ -89,5 +90,12 @@ class Extension implements ExtensionInterface
         $container->setParameter('behat.doctrine_data_fixtures.lifetime', $config['lifetime']);
         $container->setParameter('behat.doctrine_data_fixtures.migrations', $config['migrations']);
         $container->setParameter('behat.doctrine_data_fixtures.use_backup', $config['use_backup']);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function process(ContainerBuilder $container)
+    {
     }
 }
