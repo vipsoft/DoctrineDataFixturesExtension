@@ -30,6 +30,7 @@ class Extension implements ExtensionInterface
                     defaultValue(true)->
                 end()->
                 variableNode('migrations')->
+                    defaultNull()->
                 end()->
                 arrayNode('directories')->
                     prototype('scalar')->end()->
