@@ -60,7 +60,7 @@ class FixtureService
         $this->useBackup   = $container->getParameter('behat.doctrine_data_fixtures.use_backup');
         $this->kernel      = $kernel;
 
-        if ($this->useBackup != null) {
+        if ($this->useBackup) {
             $this->backupService = $container->get('behat.doctrine_data_fixtures.service.backup');
             $this->backupService->setCacheDir($this->kernel->getContainer()->getParameter('kernel.cache_dir'));
         }
@@ -393,7 +393,7 @@ class FixtureService
         $this->migrations = $this->fetchMigrations();
         $this->fixtures   = $this->fetchFixtures();
 
-        if ( ! $this->hasBackup()) {
+        if ($this->useBackup && ! $this->hasBackup()) {
             $this->dropDatabase();
         }
     }
