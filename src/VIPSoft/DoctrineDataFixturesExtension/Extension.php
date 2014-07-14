@@ -24,31 +24,31 @@ class Extension implements ExtensionInterface
      */
     public function getConfig(ArrayNodeDefinition $builder)
     {
-        $builder->
-            children()->
-                scalarNode('autoload')->
-                    defaultValue(true)->
-                end()->
-                variableNode('migrations')->
-                    defaultNull()->
-                end()->
-                arrayNode('directories')->
-                    prototype('scalar')->end()->
-                end()->
-                arrayNode('fixtures')->
-                    prototype('scalar')->end()->
-                end()->
-                scalarNode('lifetime')->
-                    defaultValue('feature')->
-                    validate()->
-                        ifNotInArray(array('feature', 'scenario'))->
-                        thenInvalid('Invalid fixtures lifetime "%s"')->
-                    end()->
-                end()->
-                booleanNode('use_backup')->
-                    defaultValue(true)->
-                end()->
-            end();
+        $builder
+            ->children()
+                ->scalarNode('autoload')
+                    ->defaultValue(true)
+                ->end()
+                ->variableNode('migrations')
+                    ->defaultNull()
+                ->end()
+                ->arrayNode('directories')
+                    ->prototype('scalar')->end()
+                ->end()
+                ->arrayNode('fixtures')
+                    ->prototype('scalar')->end()
+                ->end()
+                ->scalarNode('lifetime')
+                    ->defaultValue('feature')
+                    ->validate()
+                        ->ifNotInArray(array('feature', 'scenario'))
+                        ->thenInvalid('Invalid fixtures lifetime "%s"')
+                    ->end()
+                ->end()
+                ->booleanNode('use_backup')
+                    ->defaultValue(true)
+                ->end()
+            ->end();
     }
 
     /**
