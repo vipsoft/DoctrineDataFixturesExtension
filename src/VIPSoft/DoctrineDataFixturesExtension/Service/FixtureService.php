@@ -38,6 +38,7 @@ class FixtureService
     private $entityManager;
     private $listener;
     private $useBackup;
+	private $hasToDropDatabase;
     private $backupService;
 
     /**
@@ -53,12 +54,13 @@ class FixtureService
      */
     public function __construct(ContainerInterface $container, Kernel $kernel)
     {
-        $this->autoload    = $container->getParameter('behat.doctrine_data_fixtures.autoload');
-        $this->fixtures    = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
-        $this->directories = $container->getParameter('behat.doctrine_data_fixtures.directories');
-        $this->migrations  = $container->getParameter('behat.doctrine_data_fixtures.migrations');
-        $this->useBackup   = $container->getParameter('behat.doctrine_data_fixtures.use_backup');
-        $this->kernel      = $kernel;
+        $this->autoload          = $container->getParameter('behat.doctrine_data_fixtures.autoload');
+        $this->fixtures          = $container->getParameter('behat.doctrine_data_fixtures.fixtures');
+        $this->directories       = $container->getParameter('behat.doctrine_data_fixtures.directories');
+        $this->migrations        = $container->getParameter('behat.doctrine_data_fixtures.migrations');
+        $this->useBackup         = $container->getParameter('behat.doctrine_data_fixtures.use_backup');
+	    $this->hasToDropDatabase = $container->getParameter('behat.doctrine_data_fixtures.drop_database');
+        $this->kernel            = $kernel;
 
         if ($this->useBackup) {
             $this->backupService = $container->get('behat.doctrine_data_fixtures.service.backup');
@@ -394,7 +396,9 @@ class FixtureService
         $this->fixtures   = $this->fetchFixtures();
 
         if ($this->useBackup && ! $this->hasBackup()) {
-            $this->dropDatabase();
+	        if ($this->hasToDropDatabase) {
+		        $this->dropDatabase();
+	        }
         }
     }
 
@@ -461,8 +465,10 @@ class FixtureService
         }
 
         if ($this->migrations === null) {
-            $this->dropDatabase();
-            $this->createDatabase();
+	        if ($this->hasToDropDatabase) {
+		        $this->dropDatabase();
+		        $this->createDatabase();
+	        }
         }
 
         $this->loadFixtures();
