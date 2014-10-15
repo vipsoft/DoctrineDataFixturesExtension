@@ -65,9 +65,9 @@ class Extension implements ExtensionInterface
                 ->booleanNode('use_backup')
                     ->defaultValue(true)
                 ->end()
-	            ->booleanNode('drop_database')
-	                ->defaultValue(true)
-	            ->end()
+                ->booleanNode('drop_database')
+                    ->defaultValue(true)
+                ->end()
             ->end();
     }
 
