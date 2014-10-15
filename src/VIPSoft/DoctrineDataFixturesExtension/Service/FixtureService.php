@@ -38,7 +38,7 @@ class FixtureService
     private $entityManager;
     private $listener;
     private $useBackup;
-	private $hasToDropDatabase;
+    private $hasToDropDatabase;
     private $backupService;
 
     /**
@@ -59,7 +59,7 @@ class FixtureService
         $this->directories       = $container->getParameter('behat.doctrine_data_fixtures.directories');
         $this->migrations        = $container->getParameter('behat.doctrine_data_fixtures.migrations');
         $this->useBackup         = $container->getParameter('behat.doctrine_data_fixtures.use_backup');
-	    $this->hasToDropDatabase = $container->getParameter('behat.doctrine_data_fixtures.drop_database');
+        $this->hasToDropDatabase = $container->getParameter('behat.doctrine_data_fixtures.drop_database');
         $this->kernel            = $kernel;
 
         if ($this->useBackup) {
@@ -396,9 +396,9 @@ class FixtureService
         $this->fixtures   = $this->fetchFixtures();
 
         if ($this->useBackup && ! $this->hasBackup()) {
-	        if ($this->hasToDropDatabase) {
-		        $this->dropDatabase();
-	        }
+            if ($this->hasToDropDatabase) {
+                $this->dropDatabase();
+            }
         }
     }
 
@@ -465,10 +465,10 @@ class FixtureService
         }
 
         if ($this->migrations === null) {
-	        if ($this->hasToDropDatabase) {
-		        $this->dropDatabase();
-		        $this->createDatabase();
-	        }
+            if ($this->hasToDropDatabase) {
+                $this->dropDatabase();
+                $this->createDatabase();
+            }
         }
 
         $this->loadFixtures();
