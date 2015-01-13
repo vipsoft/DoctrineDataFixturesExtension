@@ -61,15 +61,15 @@ class MysqlDumpBackup implements BackupInterface
     {
         $command = sprintf("%s %s > %s", $this->mysqldumpBin, escapeshellarg($database), escapeshellarg($file));
 
-        if (isset($params['host'])) {
+        if (isset($params['host']) && strlen($params['host'])) {
             $command .= sprintf(" --host=%s", escapeshellarg($params['host']));
         }
 
-        if (isset($params['user'])) {
+        if (isset($params['user']) && strlen($params['user'])) {
             $command .= sprintf(" --user=%s", escapeshellarg($params['user']));
         }
 
-        if (isset($params['password']) && strlen($params['password']) > 0) {
+        if (isset($params['password']) && strlen($params['password'])) {
             $command .= sprintf(" --password=%s", escapeshellarg($params['password']));
         }
 
@@ -83,15 +83,15 @@ class MysqlDumpBackup implements BackupInterface
     {
         $command = sprintf("%s %s < %s", $this->mysqlBin, escapeshellarg($database), escapeshellarg($file));
 
-        if (isset($params['host'])) {
+        if (isset($params['host']) && strlen($params['host'])) {
             $command .= sprintf(" --host=%s", escapeshellarg($params['host']));
         }
 
-        if (isset($params['user'])) {
+        if (isset($params['user']) && strlen($params['user'])) {
             $command .= sprintf(" --user=%s", escapeshellarg($params['user']));
         }
 
-        if (isset($params['password']) && strlen($params['password']) > 0) {
+        if (isset($params['password']) && strlen($params['password'])) {
             $command .= sprintf(" --password=%s", escapeshellarg($params['password']));
         }
 
