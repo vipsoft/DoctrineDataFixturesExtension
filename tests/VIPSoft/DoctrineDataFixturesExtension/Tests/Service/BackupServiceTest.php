@@ -67,6 +67,7 @@ class BackupServiceTest extends \PHPUnit_Framework_TestCase
                 'host' => 'localhost',
                 'user' => 'root',
                 'pass' => 'root',
+                'port' => 3306
             )));
 
         $this->sqliteConnection->expects($this->any())
@@ -84,6 +85,7 @@ class BackupServiceTest extends \PHPUnit_Framework_TestCase
                 'host' => 'localhost',
                 'user' => 'root',
                 'pass' => 'root',
+                'port' => 3306
             )));
 
         $this->sqliteBackup->expects($this->once())
@@ -104,6 +106,7 @@ class BackupServiceTest extends \PHPUnit_Framework_TestCase
                 'host' => 'localhost',
                 'user' => 'root',
                 'pass' => 'root',
+                'port' => 3306
             )));
 
         $this->sqliteBackup->expects($this->once())
