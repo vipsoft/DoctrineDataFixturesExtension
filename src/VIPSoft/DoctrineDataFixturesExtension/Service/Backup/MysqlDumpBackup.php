@@ -73,6 +73,10 @@ class MysqlDumpBackup implements BackupInterface
             $command .= sprintf(" --password=%s", escapeshellarg($params['password']));
         }
 
+        if (isset($params['port'])) {
+            $command .= sprintf(" -P%s", escapeshellarg($params['port']));
+        }
+
         $this->runCommand($command);
     }
 
@@ -95,6 +99,10 @@ class MysqlDumpBackup implements BackupInterface
             $command .= sprintf(" --password=%s", escapeshellarg($params['password']));
         }
 
+        if (isset($params['port'])) {
+            $command .= sprintf(" -P%s", escapeshellarg($params['port']));
+        }
+        
         $this->runCommand($command);
     }
 }
