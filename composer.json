@@ -14,7 +14,7 @@
     ],
     "require": {
         "php": ">=5.3.6",
-        "behat/behat": "~3.0.6",
+        "behat/behat": "~3.0",
         "behat/symfony2-extension": "~2.0",
         "doctrine/data-fixtures": "~1.0"
     },
