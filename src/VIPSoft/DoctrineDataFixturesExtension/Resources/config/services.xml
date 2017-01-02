@@ -10,8 +10,11 @@
         <parameter key="behat.doctrine_data_fixtures.service.backup.class">VIPSoft\DoctrineDataFixturesExtension\Service\BackupService</parameter>
         <parameter key="behat.doctrine_data_fixtures.service.backup_mysql.class">VIPSoft\DoctrineDataFixturesExtension\Service\Backup\MysqlDumpBackup</parameter>
         <parameter key="behat.doctrine_data_fixtures.service.backup_sqlite.class">VIPSoft\DoctrineDataFixturesExtension\Service\Backup\SqliteCopyBackup</parameter>
+        <parameter key="behat.doctrine_data_fixtures.service.backup_postgresql.class">VIPSoft\DoctrineDataFixturesExtension\Service\Backup\PostgresqlDumpBackup</parameter>
         <parameter key="behat.doctrine_data_fixtures.service.backup_mysql.mysql_bin">mysql</parameter>
         <parameter key="behat.doctrine_data_fixtures.service.backup_mysql.mysqldump_bin">mysqldump</parameter>
+        <parameter key="behat.doctrine_data_fixtures.service.backup_postgresql.pg_restore_bin">pg_restore</parameter>
+        <parameter key="behat.doctrine_data_fixtures.service.backup_postgresql.pg_dump_bin">pg_dump</parameter>
     </parameters>
 
     <services>
@@ -27,11 +30,21 @@
 
         <service id="behat.doctrine_data_fixtures.service.backup_sqlite" class="%behat.doctrine_data_fixtures.service.backup_sqlite.class%"/>
 
+        <service id="behat.doctrine_data_fixtures.service.backup_postgresql" class="%behat.doctrine_data_fixtures.service.backup_postgresql.class%">
+            <call method="setPgRestoreBin">
+                <argument>%behat.doctrine_data_fixtures.service.backup_postgresql.pg_restore_bin%</argument>
+            </call>
+            <call method="setPgDumpBin">
+                <argument>%behat.doctrine_data_fixtures.service.backup_postgresql.pg_dump_bin%</argument>
+            </call>
+        </service>
+
         <service id="behat.doctrine_data_fixtures.service.backup" class="%behat.doctrine_data_fixtures.service.backup.class%">
             <call method="setPlatformBackupMap">
                 <argument type="collection">
                     <argument key="sqlite" type="service" id="behat.doctrine_data_fixtures.service.backup_sqlite"/>
                     <argument key="mysql" type="service" id="behat.doctrine_data_fixtures.service.backup_mysql"/>
+                    <argument key="postgresql" type="service" id="behat.doctrine_data_fixtures.service.backup_postgresql"/>
                 </argument>
             </call>
         </service>
