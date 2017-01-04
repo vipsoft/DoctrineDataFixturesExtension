@@ -65,6 +65,9 @@ class Extension implements ExtensionInterface
                 ->booleanNode('use_backup')
                     ->defaultValue(true)
                 ->end()
+                ->booleanNode('drop_database')
+                    ->defaultValue(true)
+                ->end()
             ->end();
     }
 
@@ -90,6 +93,7 @@ class Extension implements ExtensionInterface
         $container->setParameter('behat.doctrine_data_fixtures.lifetime', $config['lifetime']);
         $container->setParameter('behat.doctrine_data_fixtures.migrations', $config['migrations']);
         $container->setParameter('behat.doctrine_data_fixtures.use_backup', $config['use_backup']);
+        $container->setParameter('behat.doctrine_data_fixtures.drop_database', $config['drop_database']);
     }
 
     /**
