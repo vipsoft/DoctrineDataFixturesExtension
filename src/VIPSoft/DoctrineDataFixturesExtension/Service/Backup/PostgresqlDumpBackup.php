@@ -9,12 +9,12 @@ class PostgresqlDumpBackup implements BackupInterface
     /**
      * @var string
      */
-    private $pgRestore;
+    private $pgRestore = 'pg_restore';
 
     /**
      * @var string
      */
-    private $pgDump;
+    private $pgDump = 'pg_dump';
 
     /**
      * @param string $bin
